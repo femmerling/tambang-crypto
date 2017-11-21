@@ -1,0 +1,83 @@
+[
+  {
+    "id": "btc_idr",
+    "asset": "BTC",
+    "currency": "IDR",
+    "min_size": "10000",
+    "max_size": "100000000000",
+    "increment": "100",
+    "label": "BTC/IDR"
+  },
+  {
+    "id": "bch_idr",
+    "asset": "BCH",
+    "currency": "IDR",
+    "min_size": "10000",
+    "max_size": "100000000000",
+    "increment": "100",
+    "label": "BCH/IDR"
+  },
+  {
+    "id": "eth_idr",
+    "asset": "ETH",
+    "currency": "IDR",
+    "min_size": "10000",
+    "max_size": "100000000000",
+    "increment": "100",
+    "label": "ETH/IDR"
+  },
+  {
+    "id": "etc_idr",
+    "asset": "ETC",
+    "currency": "IDR",
+    "min_size": "10000",
+    "max_size": "100000000000",
+    "increment": "100",
+    "label": "ETC/IDR"
+  },
+  {
+    "id": "ltc_idr",
+    "asset": "LTC",
+    "currency": "IDR",
+    "min_size": "10000",
+    "max_size": "100000000000",
+    "increment": "100",
+    "label": "LTC/IDR"
+  },
+  {
+    "id": "waves_idr",
+    "asset": "WAVES",
+    "currency": "IDR",
+    "min_size": "1000",
+    "max_size": "10000000000",
+    "increment": "10",
+    "label": "WAVES/IDR"
+  },
+  {
+    "id": "str_idr",
+    "asset": "XLM",
+    "currency": "IDR",
+    "min_size": "100",
+    "max_size": "10000000000",
+    "increment": "1",
+    "label": "STR/IDR"
+  },
+  {
+    "id": "xrp_idr",
+    "asset": "XRP",
+    "currency": "IDR",
+    "min_size": "100",
+    "max_size": "10000000000",
+    "increment": "1",
+    "label": "XRP/IDR"
+  },
+  {
+    "id": "xzc_idr",
+    "asset": "XZC",
+    "currency": "IDR",
+    "min_size": "10000",
+    "max_size": "10000000000",
+    "increment": "100",
+    "label": "XZC/IDR"
+  }
+]
