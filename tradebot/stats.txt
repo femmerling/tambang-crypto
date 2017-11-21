@@ -1,0 +1,1 @@
+{"slot": 250000, "purchase_price": 0, "btc_bought": 0.0, "last_price": 0, "last_sell": 0, "initial_buy": 1, "expected_margin_amt":0.01}
