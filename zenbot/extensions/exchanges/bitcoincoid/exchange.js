@@ -1,8 +1,5 @@
 //
-// Warning - Some of the functions need testing
-// by someone in posession of a BTCe account
-// In particular this is the case for
-// the buy, sell, cancelOrderand getOrderfunctions
+// Warning - this is warning
 //
 var BitcoinCoId = require('./bitcoincoid.js')
   , path = require('path')
@@ -14,7 +11,7 @@ module.exports = function container (get, set, clear) {
 
   var public_client, authed_client
 
-  function publicClient () {
+  function publicClient() {
     if (!public_client) {
       // public_client = new BitcoinCoId({})
       public_client = new BitcoinCoId({key: c.bitcoincoid.key, secret: c.bitcoincoid.secret})
@@ -22,7 +19,7 @@ module.exports = function container (get, set, clear) {
     return public_client
   }
 
-  function authedClient () {
+  function authedClient() {
     if (!authed_client) {
       if (!c.bitcoincoid || !c.bitcoincoid.key || c.bitcoincoid.key === 'YOUR-API-KEY') {
         throw new Error('please configure your BTCe credentials in conf.js')
@@ -32,11 +29,11 @@ module.exports = function container (get, set, clear) {
     return authed_client
   }
 
-  function joinProduct (product_id) {
+  function joinProduct(product_id) {
     return product_id.split('-')[0] + '_' + product_id.split('-')[1]
   }
 
-  function statusErr (err, body) {
+  function statusErr(err, body) {
     if (body === null) {
       return new Error(err)
     } else if (!body.success) {
@@ -45,7 +42,11 @@ module.exports = function container (get, set, clear) {
         throw new Error('please correct your BitcoinCoId credentials in conf.js')
       } else if (err) {
         return new Error('\nError: ' + err)
+      } else {
+        return new Error('\nError: ' + body)
       }
+    } else if (body.success !== 1) {
+      return new Error('\nError success <> 1')
     } else {
       return body
     }
@@ -88,13 +89,12 @@ module.exports = function container (get, set, clear) {
         // move cursor into the past
         args.after = opts.to
       }
-      client.getTrades(pair, function (err, body) {
+      client.getTrades(pair, function (err, resp, body) {
         if (err) return retry('getTrades', func_args, err)
         var trades = body.map(function (trade) {
           return {
             trade_id: trade.tid,
             time: trade.date * 1000,
-            //time: new Date(trade.date).getTime(),
             size: trade.amount,
             price: trade.price,
             side: trade.type
@@ -112,11 +112,7 @@ module.exports = function container (get, set, clear) {
       }
       var func_args = [].slice.call(arguments)
       var client = authedClient()
-      client.getInfo(function (err, body) {
-        // console.log("error:")
-        // console.log(err)
-        // console.log("body:")
-        // console.log(body)
+      client.getInfo(function (err, resp, body) {
         body = statusErr(err, body)
         if (err) {
           return retry('getBalance', func_args, err)
@@ -134,11 +130,11 @@ module.exports = function container (get, set, clear) {
       })
     },
 
-    getQuote: function (opts, cb) {
+    getQuote: function (opts, cb) {      
       var func_args = [].slice.call(arguments)
       var client = publicClient()
       var pair = joinProduct(opts.product_id).toLowerCase()
-      client.getTicker(pair, function (err, body) {
+      client.getTicker(pair, function (err, resp, body) {
         if (err) return retry('getQuote', func_args, err)
         cb(null, { bid: body.ticker.buy, ask: body.ticker.sell })
       })
@@ -164,18 +160,9 @@ module.exports = function container (get, set, clear) {
 
     trade: function (type, opts, cb) {
       var func_args = [].slice.call(arguments)
-      var client = authed_client()
+      var client = authedClient()
       var pair = joinProduct(opts.product_id).toLowerCase()
-      /* BTCe has no order type?
-      if (typeof opts.post_only === 'undefined') {
-        opts.post_only = true
-      }
-      if (opts.order_type === 'taker') {
-        delete opts.price
-        delete opts.post_only
-        opts.type = 'market'
-      }
-      */
+
       delete opts.order_type
       delete opts.cancel_after
 
@@ -191,11 +178,10 @@ module.exports = function container (get, set, clear) {
         params[opts.product_id.split('-')[0].toLowerCase()] = opts.size
       }
       
-      
-      client.trade(params, function(err, body) {
+      client.trade(params, function(err, resp, body) {
         body = statusErr(err, body)
         // Fix me - Check return codes from API
-        if (body && body.message === 'Insufficient balance.') {
+        if (body && (body.message === 'Insufficient balance.')) {
           var order = {
             status: 'rejected',
             reject_reason: 'balance'

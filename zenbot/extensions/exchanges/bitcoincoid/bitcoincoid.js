@@ -1,8 +1,8 @@
 var querystring = require('querystring'),
 VError = require('verror'),
 crypto = require('crypto'),
-https =require('https'),
-url = require('url');
+url = require('url'),
+request = require('request-promise');
 
 var self;
 
@@ -19,7 +19,8 @@ var bitcoinCoId = function bitcoinCoId(settings)
 function makePublicRequest( path, args, callback)
 {
     var functionName = 'bitcoinCoIdbitcoinCoId.makePublicRequest()';
-    var options = url.parse(self.url+path);
+    var options = {}
+    options.url = url.parse(self.url+path);
     options.method = "GET";
     executeRequest(options, {}, callback);
 };
@@ -46,7 +47,8 @@ function makePrivateRequest(method, args, callback)
     .update(new Buffer(content_data, 'utf8'))
     .digest('hex');
 
-    var options = url.parse(self.tradeUrl);
+    var options = {}
+    options.url = url.parse(self.tradeUrl);
     options.method = 'POST'
     options.headers = {
         'Key': self.key,
@@ -54,38 +56,24 @@ function makePrivateRequest(method, args, callback)
         'content-type': 'application/x-www-form-urlencoded',
         'content-length': content_data.length,
     }
-    executeRequest(options, content_data, callback);
+    executeRequest(options, args, callback);
 };
 
-function executeRequest(options,content, callback){
-    console.log(options)
+function executeRequest(options, content, callback){
     var functionName = 'bitcoincoid.executeRequest()';
-    var req = https.request(options, function(res) {
-        var data = ''
-        res.setEncoding('utf8')
-        res.on('data', function (chunk) {
-            data+= chunk
+    if (options.method == 'POST') {
+        request.post(options, function(err, resp, body)
+        { 
+            body = JSON.parse(body);
+            callback(err,resp,body);
+        }).form(content)
+    } else {
+        request.get(options, function(err, resp, body)
+        { 
+            body = JSON.parse(body);
+            callback(err,resp,body);
         })
-        res.on('end', function() {
-            try{
-                data = JSON.parse(data);
-                callback(null,data);
-            }
-            catch(e){
-                return callback(new VError("%s Error in Parsing Data to JSON", functionName));
-            }
-            
-        })
-    });
-    
-
-    req.on('error', function(err) {
-        return callback(new VError("%s Error in Parsing request", functionName));
-    })
-    if(options.method == 'POST'){
-        req.write(content);
-    }	
-    req.end();
+    }
 }
 
 
