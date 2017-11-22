@@ -72,11 +72,15 @@ const tick = () => {
     if(err) {
       console.log('Error requesting ticker')
       console.log(err)
+      return
     }
 
-    console.log(body.ticker)
+    let last = body.ticker.last
+    if(!last) {
+      return
+    }
 
-    const last = toCurrency(body.ticker.last)
+    last = toCurrency(last)
 
     tray.setTitle(last)
     fillContextMenu(body.ticker.high, body.ticker.low, body.ticker.last, body.ticker.vol_btc, 
