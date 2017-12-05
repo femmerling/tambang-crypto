@@ -1,4 +1,5 @@
 import request from 'request-promise-native'
+import talib from '../node_modules/talib/build/Release/talib'
 import qs from 'querystring'
 import crypto from 'crypto'
 import Rx from 'rxjs/Rx'
@@ -11,7 +12,6 @@ const vipTapiMethods = {
 
 const pairs = {
   XLM_IDR: 'str_idr',
-  XLM_BTC: 'str_btc',
 }
 
 const vipSignRequest = (postBody) => {
@@ -42,7 +42,7 @@ const sendVipTapiCommand = (method, params) => {
     .map(x => JSON.parse(x))
     .switchMap((response) => {
       return response.success === 1 ?
-        Rx.Observable.of(response.return) : Rx.Observable.empty()
+        Rx.Observable.of(response.return) : Rx.Observable.throw(new Error('Unsuccessful request to VIP'))
     })
 }
 
@@ -66,16 +66,28 @@ const getXlmIdrTicker = () => {
     })
 }
 
-const loop = Rx.Observable.interval(config.interval)
+const loop = Rx.Observable.of(config.tickerInterval)
+  .do(() => console.log(`Starting XLMBTC Bot with Talib v${talib.version}`))
+  .switchMap(interval => Rx.Observable.interval(interval))
   // Get XLM/IDR Price
   .switchMap(() => {
     return getXlmIdrTicker()
   })
   .switchMap((ticker) => {
-    const xlmIdrOrders = sendVipTapiCommand(vipTapiMethods.OPEN_ORDERS, { pair: pairs.XLM_IDR })
-    const xlmBtcOrders = sendVipTapiCommand(vipTapiMethods.OPEN_ORDERS, { pair: pairs.XLM_BTC })
-    return Rx.Observable.zip(Rx.Observable.of(ticker), xlmIdrOrders, xlmBtcOrders)
+    const myInfo = sendVipTapiCommand(vipTapiMethods.GET_INFO)
+    return Rx.Observable.zip(Rx.Observable.of(ticker), myInfo)
+      .catch(err => Rx.Observable.throw(err))
   })
-  .catch(err => console.log(err))
+  .map((tickerAndInfo) => {
+    const [ticker, myInfo] = tickerAndInfo
+    
+    return tickerAndInfo
+  })
+  .catch((err) => {
+    console.log(`Found an error, bailing this tick: ${err.message}`)
+  })
 
-loop.subscribe(x => console.log(x))
+loop.subscribe((x) => {
+  return x instanceof Error ? console.log('Continuing to next tick..') :
+    console.log(x)
+})

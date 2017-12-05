@@ -6,6 +6,7 @@
   "scripts": {
     "test": "./node_modules/.bin/mocha --compilers js:babel-register tests && exit 0",
     "start": "./node_modules/.bin/nodemon src/app.js --exec babel-node",
+    "start-ticker": "./node_modules/.bin/nodemon src/ticker.js --exec babel-node",
     "build": "./node_modules/.bin/babel src -d dist",
     "serve": "node dist/app.js",
     "build-doc": "./node_modules/.bin/esdoc"
@@ -20,10 +21,16 @@
     "koa": "^2.4.1",
     "koa-body-parser": "^1.1.2",
     "koa-router-rx": "^0.4.0",
+    "material-ui": "^1.0.0-beta.22",
+    "material-ui-icons": "^1.0.0-beta.17",
+    "mongoose": "^4.13.6",
     "node-chillog": "^0.1.1",
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0",
     "request": "^2.83.0",
     "request-promise-native": "^1.0.5",
-    "rxjs": "^5.5.2"
+    "rxjs": "^5.5.2",
+    "talib": "^1.0.3"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
