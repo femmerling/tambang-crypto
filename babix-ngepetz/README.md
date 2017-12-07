@@ -46,17 +46,17 @@ while true; do SECONDS=0; python3.6 babix.py; sleep $((RANDOM%10+20-$SECONDS)); 
 # DOCKERIZE
 
 ENV_VAR:
-    API_KEY : API_KEY
-    API_SECRET : API_SECRET
-    SLEEP_SECONDS : 5
-    MAX_WAIT_TIME_SECONDS : 30
-    LAST_STEP_WAIT_TIME_SECONDS : 30
-    BASE_URL : https://vip.bitcoin.co.id/api/
-    PRIVATE_URL : https://vip.bitcoin.co.id/tapi/
-    MODAL_DUID : 15000000
-    FEE_PORTION : 0.003
-    THRESHOLD : 0.003
-    MAX_PARTITION : 20
+- API_KEY : API_KEY
+- API_SECRET : API_SECRET
+- SLEEP_SECONDS : 5
+- MAX_WAIT_TIME_SECONDS : 30
+- LAST_STEP_WAIT_TIME_SECONDS : 30
+- BASE_URL : https://vip.bitcoin.co.id/api/
+- PRIVATE_URL : https://vip.bitcoin.co.id/tapi/
+- MODAL_DUID : 15000000
+- FEE_PORTION : 0.003
+- THRESHOLD : 0.003
+- MAX_PARTITION : 20
 
 ## **How to build service**
 ```bash
