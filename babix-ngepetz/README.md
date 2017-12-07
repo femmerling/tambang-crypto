@@ -69,14 +69,14 @@ $ docker build -f docker/Dockerfile -t coralteam/babix-ngepetz:latest .
 $ docker run -d --name babix-ngepetz \
       -e API_KEY="API_KEY" \
       -e API_SECRET="API_SECRET" \
-      -e SLEEP_SECONDS=5 \
-      -e MAX_WAIT_TIME_SECONDS=30 \
-      -e LAST_STEP_WAIT_TIME_SECONDS=30 \
+      -e SLEEP_SECONDS="5" \
+      -e MAX_WAIT_TIME_SECONDS="30" \
+      -e LAST_STEP_WAIT_TIME_SECONDS="30" \
       -e BASE_URL="https://vip.bitcoin.co.id/api/" \
       -e PRIVATE_URL="https://vip.bitcoin.co.id/tapi/" \
-      -e MODAL_DUID=15000000 \
-      -e FEE_PORTION=0.003 \
-      -e THRESHOLD=0.003 \
-      -e MAX_PARTITION=20 \
+      -e MODAL_DUID="15000000" \
+      -e FEE_PORTION="0.003" \
+      -e THRESHOLD="0.003" \
+      -e MAX_PARTITION="20" \
       coralteam/babix-ngepetz:latest
 ```

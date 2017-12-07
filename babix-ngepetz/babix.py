@@ -14,15 +14,15 @@ from os import environ
 def set_default_config():
     environ.setdefault("API_KEY", "API_KEY")
     environ.setdefault("API_SECRET", "API_SECRET")
-    environ.setdefault("SLEEP_SECONDS", 5)
-    environ.setdefault("MAX_WAIT_TIME_SECONDS", 30)
-    environ.setdefault("LAST_STEP_WAIT_TIME_SECONDS", 30)
+    environ.setdefault("SLEEP_SECONDS", "5")
+    environ.setdefault("MAX_WAIT_TIME_SECONDS", "30")
+    environ.setdefault("LAST_STEP_WAIT_TIME_SECONDS", "30")
     environ.setdefault("BASE_URL", "https://vip.bitcoin.co.id/api/")
     environ.setdefault("PRIVATE_URL", "https://vip.bitcoin.co.id/tapi/")
-    environ.setdefault("MODAL_DUID", 15000000)
-    environ.setdefault("FEE_PORTION", 0.003)
-    environ.setdefault("THRESHOLD", 0.003)
-    environ.setdefault("MAX_PARTITION", 20)
+    environ.setdefault("MODAL_DUID", "15000000")
+    environ.setdefault("FEE_PORTION", "0.003")
+    environ.setdefault("THRESHOLD", "0.003")
+    environ.setdefault("MAX_PARTITION", "20")
 
 set_default_config()
 
@@ -31,11 +31,11 @@ API_KEY = environ.get('API_KEY')
 API_SECRET = environ.get('API_SECRET')
 
 # wait second until transaction filled
-SLEEP_SECONDS = environ.get('SLEEP_SECONDS')
+SLEEP_SECONDS = int(environ.get('SLEEP_SECONDS'))
 # wait second before we correct the transaction price
-MAX_WAIT_TIME_SECONDS = environ.get('MAX_WAIT_TIME_SECONDS')
+MAX_WAIT_TIME_SECONDS = int(environ.get('MAX_WAIT_TIME_SECONDS'))
 # wait second at last step (waiting for sell to IDR)
-LAST_STEP_WAIT_TIME_SECONDS = environ.get('LAST_STEP_WAIT_TIME_SECONDS')
+LAST_STEP_WAIT_TIME_SECONDS = int(environ.get('LAST_STEP_WAIT_TIME_SECONDS'))
 
 bitcoincoid_account = vipbtc.TradeAPI(API_KEY, API_SECRET)
 
@@ -64,14 +64,14 @@ pip = {
     'btc_idr': 100
 }
 
-modal_duid = environ.get('MODAL_DUID')
-fee_portion = environ.get('FEE_PORTION')
-threshold = environ.get('THRESHOLD') # 0.3pct profit threshold
+modal_duid = int(environ.get('MODAL_DUID'))
+fee_portion = float(environ.get('FEE_PORTION'))
+threshold = float(environ.get('THRESHOLD')) # 0.3pct profit threshold
 net_portion = (1 - fee_portion)
 market_depths = {}
 final_idr = {}
 config_path = {}
-MAX_PARTITION = environ.get('MAX_PARTITION') # brute force partition to find best matchsess
+MAX_PARTITION = int(environ.get('MAX_PARTITION')) # brute force partition to find best matchsess
 
 
 #PROXY SAMPLE for luminati.io
