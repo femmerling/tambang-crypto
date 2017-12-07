@@ -53,7 +53,7 @@ ENV_VAR:
 - LAST_STEP_WAIT_TIME_SECONDS : 30
 - BASE_URL : https://vip.bitcoin.co.id/api/
 - PRIVATE_URL : https://vip.bitcoin.co.id/tapi/
-- MODAL_DUID : 15000000
+- MODAL_DUID : 100000
 - FEE_PORTION : 0.003
 - THRESHOLD : 0.003
 - MAX_PARTITION : 20
@@ -74,9 +74,9 @@ $ docker run -d --name babix-ngepetz \
       -e LAST_STEP_WAIT_TIME_SECONDS="30" \
       -e BASE_URL="https://vip.bitcoin.co.id/api/" \
       -e PRIVATE_URL="https://vip.bitcoin.co.id/tapi/" \
-      -e MODAL_DUID="15000000" \
+      -e MODAL_DUID="100000" \
       -e FEE_PORTION="0.003" \
       -e THRESHOLD="0.003" \
       -e MAX_PARTITION="20" \
-      coralteam/babix-ngepetz:latest
+      coralteam/babix-ngepets:latest
 ```
