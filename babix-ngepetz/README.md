@@ -20,6 +20,8 @@ What it does:
 
 What to setup:
 Modify babix.py
+- modal_duid : base IDR amount that you want to trade
+- threshold : profit threshold before execute trade (default 0.005, which is 0.5 percent)
 - API_KEY
 - API_SECRET
 - SLEEP_SECONDS
