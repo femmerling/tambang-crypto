@@ -41,3 +41,42 @@ You can run it on the background, using something like `run.sh`
 #!/bin/bash
 while true; do SECONDS=0; python3.6 babix.py; sleep $((RANDOM%10+20-$SECONDS)); done
 ```
+
+
+# DOCKERIZE
+
+ENV_VAR:
+    API_KEY : API_KEY
+    API_SECRET : API_SECRET
+    SLEEP_SECONDS : 5
+    MAX_WAIT_TIME_SECONDS : 30
+    LAST_STEP_WAIT_TIME_SECONDS : 30
+    BASE_URL : https://vip.bitcoin.co.id/api/
+    PRIVATE_URL : https://vip.bitcoin.co.id/tapi/
+    MODAL_DUID : 15000000
+    FEE_PORTION : 0.003
+    THRESHOLD : 0.003
+    MAX_PARTITION : 20
+
+## **How to build service**
+```bash
+$ docker build -f docker/Dockerfile -t coralteam/babix-ngepetz:latest .
+```
+
+## **How to run service**
+**Docker image assumed have been created**
+```bash
+$ docker run -d --name babix-ngepetz \
+      -e API_KEY="API_KEY" \
+      -e API_SECRET="API_SECRET" \
+      -e SLEEP_SECONDS=5 \
+      -e MAX_WAIT_TIME_SECONDS=30 \
+      -e LAST_STEP_WAIT_TIME_SECONDS=30 \
+      -e BASE_URL="https://vip.bitcoin.co.id/api/" \
+      -e PRIVATE_URL="https://vip.bitcoin.co.id/tapi/" \
+      -e MODAL_DUID=15000000 \
+      -e FEE_PORTION=0.003 \
+      -e THRESHOLD=0.003 \
+      -e MAX_PARTITION=20 \
+      coralteam/babix-ngepetz:latest
+```
