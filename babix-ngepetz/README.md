@@ -53,9 +53,9 @@ ENV_VAR:
 - LAST_STEP_WAIT_TIME_SECONDS : 30
 - BASE_URL : https://vip.bitcoin.co.id/api/
 - PRIVATE_URL : https://vip.bitcoin.co.id/tapi/
-- MODAL_DUID : 100000
-- FEE_PORTION : 0.003
-- THRESHOLD : 0.003
+- MODAL_DUID : 100000 # modal uang kamuuu
+- FEE_PORTION : 0.003 # maker taker fee
+- THRESHOLD : 0.003 # margin keuntungan 0,3% = 0,3 * 100 = 0,003
 - MAX_PARTITION : 20
 
 ## **How to build service**
@@ -79,4 +79,9 @@ $ docker run -d --name babix-ngepetz \
       -e THRESHOLD="0.003" \
       -e MAX_PARTITION="20" \
       coralteam/babix-ngepets:latest
+```
+
+## Check Log
+```bash
+$ docker exec -it babix-ngepetz tail -f ngepetz.log
 ```
