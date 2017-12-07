@@ -1,0 +1,21 @@
+---
+version: '2'
+
+services:
+
+  app:
+    build:
+      dockerfile: docker/Dockerfile
+      context: ..
+    environment:
+      API_KEY: "API_KEY"
+      API_SECRET: "API_SECRET" 
+      SLEEP_SECONDS: 5
+      MAX_WAIT_TIME_SECONDS: 30
+      LAST_STEP_WAIT_TIME_SECONDS: 30
+      BASE_URL: "https://vip.bitcoin.co.id/api/"
+      PRIVATE_URL: "https://vip.bitcoin.co.id/tapi/"
+      MODAL_DUID: 15000000
+      FEE_PORTION: 0.003
+      THRESHOLD: 0.003
+      PARTITION: 20
