@@ -2,6 +2,7 @@ import vipbtc
 import time
 import json
 import random
+import sys
 
 import requests
 from requests_futures.sessions import FuturesSession
@@ -14,15 +15,15 @@ from os import environ
 def set_default_config():
     environ.setdefault("API_KEY", "API_KEY")
     environ.setdefault("API_SECRET", "API_SECRET")
-    environ.setdefault("SLEEP_SECONDS", "5")
-    environ.setdefault("MAX_WAIT_TIME_SECONDS", "30")
-    environ.setdefault("LAST_STEP_WAIT_TIME_SECONDS", "30")
+    environ.setdefault("SLEEP_SECONDS", "1")
+    environ.setdefault("MAX_WAIT_TIME_SECONDS", "10")
+    environ.setdefault("LAST_STEP_WAIT_TIME_SECONDS", "10")
     environ.setdefault("BASE_URL", "https://vip.bitcoin.co.id/api/")
     environ.setdefault("PRIVATE_URL", "https://vip.bitcoin.co.id/tapi/")
-    environ.setdefault("MODAL_DUID", "15000000")
+    environ.setdefault("MODAL_DUID", "100000")
     environ.setdefault("FEE_PORTION", "0.003")
-    environ.setdefault("THRESHOLD", "0.003")
-    environ.setdefault("MAX_PARTITION", "20")
+    environ.setdefault("THRESHOLD", "0.005")
+    environ.setdefault("MAX_PARTITION", "10")
 
 set_default_config()
 
@@ -92,12 +93,10 @@ MAX_PARTITION = int(environ.get('MAX_PARTITION')) # brute force partition to fin
 
 # dont forget to change proxy setting on fetch_market_data
 
-session = FuturesSession(max_workers=9)
+session = FuturesSession(max_workers=len(pairs.keys()))
 logger = logging.getLogger("babix.ngepetz")
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-logfile_handler = RotatingFileHandler(filename='ngepetz.log', 
-                              maxBytes=10485760,
-                              backupCount=10)
+logfile_handler = logging.StreamHandler(stream=sys.stdout)
 logfile_handler.setFormatter(formatter)
 logger.setLevel(logging.DEBUG)
 logger.addHandler(logfile_handler)
