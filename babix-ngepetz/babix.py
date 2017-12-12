@@ -1,22 +1,20 @@
-import vipbtc
-import time
 import json
-import random
+import logging
 import sys
+import time
+from os import environ
 
 import requests
 from requests_futures.sessions import FuturesSession
 
-import logging
-from logging.handlers import RotatingFileHandler
+import vipbtc
+from vipio.cfsession import create_scraper
 
-from os import environ
-
-__VERSION__ = '0.2.1.0'
+__VERSION__ = '0.3.0.0'
 
 def set_default_config():
-    environ.setdefault("API_KEY", "API_KEY")
-    environ.setdefault("API_SECRET", "API_SECRET")
+    environ.setdefault("API_KEY", "")
+    environ.setdefault("API_SECRET", "")
     environ.setdefault("SLEEP_SECONDS", "1")
     environ.setdefault("MAX_WAIT_TIME_SECONDS", "10")
     environ.setdefault("LAST_STEP_WAIT_TIME_SECONDS", "10")
@@ -99,7 +97,9 @@ MAX_PARTITION = int(environ.get('MAX_PARTITION')) # brute force partition to fin
 # proxies = {'http': proxy_url, 'https': proxy_url}
 
 # dont forget to change proxy setting on fetch_market_data
-session = FuturesSession(max_workers=len(pairs.keys()))
+session = FuturesSession(max_workers=len(pairs.keys()),
+                         session=create_scraper())
+# session = create_scraper()
 logger = logging.getLogger("babix.ngepetz")
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 logfile_handler = logging.StreamHandler(stream=sys.stdout)

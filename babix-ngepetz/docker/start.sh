@@ -2,7 +2,7 @@
 
 case $1 in
   "run")
-    while true; do SECONDS=0; python babix.py; sleep $((RANDOM%10+20-$SECONDS)); done
+    while true; do SECONDS=0; python babix.py; sleep 10; done
     ;;
   *)
     echo "usage: $0 [run]"
