@@ -715,7 +715,7 @@ for portion in range(MAX_PARTITION, 0, -1):
     # print(config_path)
 
     for path_name in config_path:
-        if ((config_path[path_name]['final_idr']-amount_idr)/(amount_idr) > threshold):
+        if ((config_path[path_name]['final_idr']-amount_idr)/(amount_idr) > threshold) and config_path[path_name]['final_idr'] > 50000:
             if max_profit < config_path[path_name]['final_idr']:
                 max_profit = config_path[path_name]['final_idr']
                 max_profit_path = path_name
