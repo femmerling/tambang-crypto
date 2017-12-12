@@ -8,7 +8,7 @@ def get_data(param, requests_session):
         requests_session = common.Session()
 
     url = 'https://vip.bitcoin.co.id/api/btc_idr/'+param
-    
+
     return requests_session.api_request(url)
 
 
@@ -25,7 +25,7 @@ def getTicker(session=None):
     if not isinstance(response, dict):
         raise TypeError("The response is a %r, not a dict." % type(response))
     elif 'error' in response:
-        print(("There is a error \"%s\" while obtaining ticker" % response['error'])) 
+        print(("There is a error \"%s\" while obtaining ticker" % response['error']))
         ticker = None
     else:
         # ticker = Ticker(**response['ticker'])
@@ -42,7 +42,7 @@ def getDepth(session=None):
     """
     Retrieve the depth for the given pair.  Returns a tuple (asks, bids);
     each of these is a list of (price, volume) tuples.
-    
+
     Arguments:
     session : vipbtc.Session object
     """
@@ -62,7 +62,7 @@ def getDepth(session=None):
     bids = pd.DataFrame(depth['buy'])
     bids.rename(columns={0:'price',1:'volume'},inplace=True)
     bids['volume'] = bids['volume'].apply(pd.to_numeric)
-    
+
     index = pd.MultiIndex.from_product([('asks', 'bids'),('price', 'volume')])
 
     df = pd.DataFrame(pd.concat([asks, bids], axis=1).values, columns=index)
@@ -74,7 +74,7 @@ def getTradeHistory(session=None):
     """
     Retrieve the trade history for the given pair.  Returns a list of
     Trade instances.
-    
+
     Arguments:
     session : vipbtc.Session object
     """

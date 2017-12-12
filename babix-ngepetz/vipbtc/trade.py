@@ -26,7 +26,7 @@ def signature(secret, params):
     return sig.hexdigest()
 
 
-class TradeAPI:  
+class TradeAPI:
     def __init__(self, key, secret, requests_session=None):
         self.__key = key
         self.__secret = secret
@@ -36,13 +36,13 @@ class TradeAPI:
         else:
             self.__requests_session = common.Session()
 
-    def __post(self, method, params):        
+    def __post(self, method, params):
         url = 'https://vip.bitcoin.co.id/tapi'
         params['method'] = method
         params['nonce'] = nonce()
-        auth = vipAuth(self.__key, signature(self.__secret, urlencode(params))) 
+        auth = vipAuth(self.__key, signature(self.__secret, urlencode(params)))
         response = self.__requests_session.api_request(url, params, auth, 'post')
-        
+
         return response.json()
 
     def getInfo(self):
@@ -56,7 +56,7 @@ class TradeAPI:
             "pair" : pair, #btc_idr, stc_idr
             "type" : ttype, #buy / sell
             "price" : price #price
-        } 
+        }
         params[base] = amount #idr, btc, etch etc
         return self.__post('trade', params)
 
@@ -80,7 +80,7 @@ class TradeAPI:
             'order_id' : order_id,
             'type' : ttype}
         return self.__post('cancelOrder', params)
-    
+
     def getOrder(self, order_id, pair):
         params = {
             'pair': pair,
