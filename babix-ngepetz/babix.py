@@ -12,6 +12,8 @@ from logging.handlers import RotatingFileHandler
 
 from os import environ
 
+__VERSION__ = '0.2.1.0'
+
 def set_default_config():
     environ.setdefault("API_KEY", "API_KEY")
     environ.setdefault("API_SECRET", "API_SECRET")
@@ -24,6 +26,8 @@ def set_default_config():
     environ.setdefault("FEE_PORTION", "0.003")
     environ.setdefault("THRESHOLD", "0.005")
     environ.setdefault("MAX_PARTITION", "10")
+    environ.setdefault("SAFETY_NET_MULTIPLIER", "8")
+    environ.setdefault("ALT_TO_TRADE", "ETH LTC XLM XRP NXT")
 
 set_default_config()
 
@@ -32,11 +36,11 @@ API_KEY = environ.get('API_KEY')
 API_SECRET = environ.get('API_SECRET')
 
 # wait second until transaction filled
-SLEEP_SECONDS = int(environ.get('SLEEP_SECONDS'))
+SLEEP_SECONDS = float(environ.get('SLEEP_SECONDS'))
 # wait second before we correct the transaction price
-MAX_WAIT_TIME_SECONDS = int(environ.get('MAX_WAIT_TIME_SECONDS'))
+MAX_WAIT_TIME_SECONDS = float(environ.get('MAX_WAIT_TIME_SECONDS'))
 # wait second at last step (waiting for sell to IDR)
-LAST_STEP_WAIT_TIME_SECONDS = int(environ.get('LAST_STEP_WAIT_TIME_SECONDS'))
+LAST_STEP_WAIT_TIME_SECONDS = float(environ.get('LAST_STEP_WAIT_TIME_SECONDS'))
 
 bitcoincoid_account = vipbtc.TradeAPI(API_KEY, API_SECRET)
 
@@ -65,6 +69,9 @@ pip = {
     'btc_idr': 100
 }
 
+ALT_SYMBOL_LIST = str(environ.get('ALT_TO_TRADE')).split() # alt coin to trade with our bot
+SAFETY_NET_MULTIPLIER = int(environ.get('SAFETY_NET_MULTIPLIER')) #ensure market has 8 times of our trade volume
+
 modal_duid = int(environ.get('MODAL_DUID'))
 fee_portion = float(environ.get('FEE_PORTION'))
 threshold = float(environ.get('THRESHOLD')) # 0.3pct profit threshold
@@ -92,11 +99,13 @@ MAX_PARTITION = int(environ.get('MAX_PARTITION')) # brute force partition to fin
 # proxies = {'http': proxy_url, 'https': proxy_url}
 
 # dont forget to change proxy setting on fetch_market_data
-
 session = FuturesSession(max_workers=len(pairs.keys()))
 logger = logging.getLogger("babix.ngepetz")
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 logfile_handler = logging.StreamHandler(stream=sys.stdout)
+# logfile_handler = RotatingFileHandler(filename='ngepetz.log', 
+#                                       maxBytes=10485760,
+#                                       backupCount=10)
 logfile_handler.setFormatter(formatter)
 logger.setLevel(logging.DEBUG)
 logger.addHandler(logfile_handler)
@@ -128,17 +137,21 @@ def fetch_market_data():
     # logger.info('Finished loading market pair data')
     return fetch_depths
 
-def calculate_idr_btc_alt_path(initial_amount):
-    fee_1 = initial_amount * 0.003
+def calculate_idr_btc_alt_path(initial_amount, fee, safety_net, alt_symbol_list):
+
+    fee_1 = initial_amount * fee
+
     btc_aqcuired = (initial_amount / float(market_depths['BTC/IDR']['highest_sell']))
     btc_buy_price = float(market_depths['BTC/IDR']['highest_sell'])
-    if btc_aqcuired > float(market_depths['BTC/IDR']['sell'][0][1]):
+    
+    #check the offered volume, is it large enought for us
+    if (btc_aqcuired * safety_net) > float(market_depths['BTC/IDR']['sell'][0][1]):
         for btc_sell in market_depths['BTC/IDR']['sell']:
-            if float(btc_sell[1]) > btc_aqcuired:
+            if float(btc_sell[1]) > (btc_aqcuired * safety_net):
                 btc_buy_price = float(btc_sell[0])
                 break
     
-    for alt_symbol in ['ETH', 'LTC', 'XLM', 'XRP', 'NXT']:
+    for alt_symbol in alt_symbol_list:
         
         config_key = 'IDR_BTC_' + alt_symbol
         config_path[config_key] = {}
@@ -147,31 +160,35 @@ def calculate_idr_btc_alt_path(initial_amount):
         market_idr_symbol = alt_symbol + '/IDR'
         alt_buy_price = float(market_depths[market_btc_symbol]['highest_sell'])
         altcoin_acquired = (btc_aqcuired / float(market_depths[market_btc_symbol]['highest_sell']))
-        if altcoin_acquired > float(market_depths[market_btc_symbol]['sell'][0][1]):
+        
+        #check the offered volume, is it large enought for us
+        if (altcoin_acquired * safety_net) > float(market_depths[market_btc_symbol]['sell'][0][1]):
             for alt_sell in market_depths[market_btc_symbol]['sell']:
-                if float(alt_sell[1]) > altcoin_acquired:
+                if float(alt_sell[1]) > (altcoin_acquired * safety_net):
                     alt_buy_price = float(alt_sell[0])
                     altcoin_acquired = (btc_aqcuired / alt_buy_price)
                     break
         
         idr_acquired = altcoin_acquired * float(market_depths[market_idr_symbol]['highest_buy'])
         alt_sell_price = float(market_depths[market_idr_symbol]['highest_buy'])
-        if altcoin_acquired > float(market_depths[market_idr_symbol]['buy'][0][1]):
+
+        #check the offered volume, is it large enought for us
+        if (altcoin_acquired * safety_net) > float(market_depths[market_idr_symbol]['buy'][0][1]):
             for alt_buy in market_depths[market_idr_symbol]['buy']:
-                if float(alt_buy[1]) > altcoin_acquired:
+                if float(alt_buy[1]) > (altcoin_acquired * safety_net):
                     alt_sell_price = float(alt_buy[0])
                     idr_acquired = altcoin_acquired * alt_sell_price
                     break
 
-        idr_acquired = (idr_acquired * 0.997) - fee_1
+        idr_acquired = (idr_acquired * (1.0 - fee)) - fee_1
         config_path[config_key]['step1_btc_buy_price'] = btc_buy_price
         config_path[config_key]['step2_alt_buy_price'] = alt_buy_price
         config_path[config_key]['step3_alt_sell_price'] = alt_sell_price
         config_path[config_key]['final_idr'] = idr_acquired
 
-def calculate_idr_alt_btc_path(initial_amount):
-    fee_1 = initial_amount * 0.003
-    for alt_symbol in ['ETH', 'LTC', 'XLM', 'XRP', 'NXT']:
+def calculate_idr_alt_btc_path(initial_amount, fee, safety_net, alt_symbol_list):
+    fee_1 = initial_amount * fee
+    for alt_symbol in alt_symbol_list:
         
         config_key = 'IDR_' + alt_symbol + '_BTC'
         config_path[config_key] = {}
@@ -182,9 +199,10 @@ def calculate_idr_alt_btc_path(initial_amount):
         alt_buy_price = float(market_depths[market_idr_symbol]['highest_sell'])
         altcoin_acquired = (initial_amount / float(market_depths[market_idr_symbol]['highest_sell']))
         
-        if altcoin_acquired > float(market_depths[market_idr_symbol]['sell'][0][1]):
+        #check the offered volume, is it large enought for us
+        if (altcoin_acquired * safety_net) > float(market_depths[market_idr_symbol]['sell'][0][1]):
             for alt_sell in market_depths[market_idr_symbol]['sell']:
-                if float(alt_sell[1]) > altcoin_acquired:
+                if float(alt_sell[1]) > (altcoin_acquired * safety_net):
                     alt_buy_price = float(alt_sell[0])
                     altcoin_acquired = (initial_amount / float(alt_sell[0]))
                     break
@@ -192,23 +210,26 @@ def calculate_idr_alt_btc_path(initial_amount):
         btc_acquired = altcoin_acquired * float(market_depths[market_btc_symbol]['highest_buy'])
         alt_sell_price = float(market_depths[market_btc_symbol]['highest_buy'])
         
-        if altcoin_acquired > float(market_depths[market_btc_symbol]['buy'][0][1]):
+        #check the offered volume, is it large enought for us
+        if (altcoin_acquired * safety_net) > float(market_depths[market_btc_symbol]['buy'][0][1]):
             for alt_buy in market_depths[market_btc_symbol]['buy']:
-                if float(alt_buy[1]) > altcoin_acquired:
+                if float(alt_buy[1]) > (altcoin_acquired * safety_net):
                     alt_sell_price = float(alt_buy[0])
                     btc_acquired = altcoin_acquired * alt_sell_price
                     break
 
         idr_acquired = (btc_acquired * float(market_depths['BTC/IDR']['highest_buy']))
         btc_sell_price = float(market_depths['BTC/IDR']['highest_buy'])
-        if btc_acquired > float(market_depths['BTC/IDR']['buy'][0][1]):
+        
+        #check the offered volume, is it large enought for us
+        if (btc_acquired * safety_net) > float(market_depths['BTC/IDR']['buy'][0][1]):
             for btc_buy in market_depths['BTC/IDR']['buy']:
-                if float(btc_buy[1]) > btc_acquired:
+                if float(btc_buy[1]) > (btc_acquired * safety_net):
                     btc_sell_price = float(btc_buy[0])
                     idr_acquired = btc_acquired * btc_sell_price
                     break
 
-        idr_acquired = (idr_acquired * 0.997) - fee_1
+        idr_acquired = (idr_acquired * (1.0 - fee)) - fee_1
         config_path[config_key]['step1_alt_buy_price'] = alt_buy_price
         config_path[config_key]['step2_alt_sell_price'] = alt_sell_price
         config_path[config_key]['step3_btc_sell_price'] = btc_sell_price
@@ -224,6 +245,13 @@ def path_idr_btc_alt(market_pair_btc, market_pair_idr, alt_btc_pair, alt_idr_pai
 
     price_to_buy = config_path[path_name]['step1_btc_buy_price']
     amount_to_buy = amount_idr
+
+    latest_price = get_latest_price('btc_idr', 'buy')
+    if latest_price > price_to_buy:
+        logger.info('TERCYDUK, nyaris kepergok bos, harga %s jadi %s, KABUR KABUR KABUR' % (price_to_buy, latest_price))
+        return
+
+    price_to_buy = latest_price
     
     logger.info('Put order to buy BTC at price %.10f, amount %.10f' % (price_to_buy, amount_to_buy))
     trade_result = bitcoincoid_account.trade('btc_idr', 'buy', amount_to_buy, price_to_buy, 'idr')
@@ -240,31 +268,43 @@ def path_idr_btc_alt(market_pair_btc, market_pair_idr, alt_btc_pair, alt_idr_pai
     amount_btc_received = float(spent_rp / price_to_buy)
 
     logger.info('Successfully put buy BTC on %.10f amount %.10f, got %.10f' % (price_to_buy, amount_to_buy, amount_btc_received))
-    order_info = bitcoincoid_account.getOrder(order_id, 'btc_idr')
-
-    logger.debug(json.dumps(order_info))
-    while order_info['return']['order']['status'] != 'filled':
-        logger.info('Waiting for orders to be finalized, sleep %s seconds' % SLEEP_SECONDS)
-        time.sleep(SLEEP_SECONDS)
-        wait_time_seconds += SLEEP_SECONDS
+    
+    remains = float([value for key, value in trade_result['return'].items() if 'remain_' in key.lower()][0])
+    if remains != 0:
         order_info = bitcoincoid_account.getOrder(order_id, 'btc_idr')
         logger.debug(json.dumps(order_info))
+        while order_info['return']['order']['status'] != 'filled':
+            logger.info('Waiting for orders to be finalized, sleep %s seconds' % SLEEP_SECONDS)
+            time.sleep(SLEEP_SECONDS)
+            wait_time_seconds += SLEEP_SECONDS
+            order_info = bitcoincoid_account.getOrder(order_id, 'btc_idr')
+            logger.debug(json.dumps(order_info))
+            
+            # corrective action while nyangkuts
+            if wait_time_seconds >= MAX_WAIT_TIME_SECONDS:
+                order_info = corrective_action(pair='btc_idr', order_info=order_info, is_first_step=True)
+                order_id = order_info['return']['order']['order_id']
+
+                #if first step was failure, bailing out from trade
+                if (not corrective_action_triggered) and order_info.get('abort_signal'):
+                    latest_price = get_latest_price('btc_idr', 'buy')
+                    logger.info('TERCYDUK, nyaris kepergok bos, harga %s jadi %s, KABUR KABUR KABUR' % (price_to_buy, latest_price))
+                    return
+
+                corrective_action_triggered = True
+                wait_time_seconds = 0
+
+                
         
-        # corrective action while nyangkuts
-        if wait_time_seconds >= MAX_WAIT_TIME_SECONDS:
-            order_info = corrective_action(pair='btc_idr', order_info=order_info)
-            order_id = order_info['return']['order']['order_id']
-            corrective_action_triggered = True
-            wait_time_seconds = 0
-    
     # buy altcoin using BTC
     price_to_buy = config_path[path_name]['step2_alt_buy_price']
     amount_to_buy = amount_btc_received
+    # price_to_buy = get_latest_price(alt_btc_pair, 'buy')
 
     if corrective_action_triggered:
         current_coins = get_current_coin_amount('btc')
         amount_to_buy = amount_btc_received if amount_btc_received < current_coins else current_coins
-        price_to_buy = get_latest_price(alt_btc_pair, 'buy')
+        price_to_buy = get_latest_price(alt_btc_pair, 'buy', float(amount_to_buy / price_to_buy))
 
     logger.info('Put order to buy %s at price %.10f,amount %.10f BTC' % (alt_symbol, price_to_buy, amount_to_buy))
     trade_result = bitcoincoid_account.trade(alt_btc_pair, 'buy', amount_to_buy, price_to_buy, 'btc')
@@ -283,30 +323,33 @@ def path_idr_btc_alt(market_pair_btc, market_pair_idr, alt_btc_pair, alt_idr_pai
 
     logger.info('Successfully put buy %s on %.10f amount %.10f' % (alt_symbol,  price_to_buy, amount_to_buy))
     
-    order_info = bitcoincoid_account.getOrder(order_id, alt_btc_pair)
-    logger.debug(json.dumps(order_info))
-    while order_info['return']['order']['status'] != 'filled':
-        logger.info('Waiting for orders to be finalized, sleep %s seconds' % SLEEP_SECONDS)
-        time.sleep(SLEEP_SECONDS)
-        wait_time_seconds += SLEEP_SECONDS
+    remains = float([value for key, value in trade_result['return'].items() if 'remain_' in key.lower()][0])
+    if remains != 0:
         order_info = bitcoincoid_account.getOrder(order_id, alt_btc_pair)
         logger.debug(json.dumps(order_info))
+        while order_info['return']['order']['status'] != 'filled':
+            logger.info('Waiting for orders to be finalized, sleep %s seconds' % SLEEP_SECONDS)
+            time.sleep(SLEEP_SECONDS)
+            wait_time_seconds += SLEEP_SECONDS
+            order_info = bitcoincoid_account.getOrder(order_id, alt_btc_pair)
+            logger.debug(json.dumps(order_info))
 
-        # corrective action while nyangkuts
-        if wait_time_seconds >= MAX_WAIT_TIME_SECONDS:
-            order_info = corrective_action(pair=alt_btc_pair, order_info=order_info)
-            order_id = order_info['return']['order']['order_id']
-            corrective_action_triggered = True
-            wait_time_seconds = 0
-    
+            # corrective action while nyangkuts
+            if wait_time_seconds >= MAX_WAIT_TIME_SECONDS:
+                order_info = corrective_action(pair=alt_btc_pair, order_info=order_info)
+                order_id = order_info['return']['order']['order_id']
+                corrective_action_triggered = True
+                wait_time_seconds = 0
+        
     # sell altcoin to IDR
     price_to_sell = config_path[path_name]['step3_alt_sell_price']
     amount_to_sell = amount_alt_received
+    price_to_sell = get_latest_price(alt_idr_pair, 'sell')
 
     if corrective_action_triggered:
         current_coins = get_current_coin_amount(alt_symbol)
         amount_to_sell = amount_alt_received if amount_alt_received < current_coins else current_coins
-        price_to_sell = get_latest_price(alt_idr_pair, 'sell')
+        # price_to_sell = get_latest_price(alt_idr_pair, 'sell')
 
     logger.info('Put order to sell %s at price %.10f IDR, amount %.10f' % (alt_symbol, price_to_sell, amount_to_sell))
     trade_result = bitcoincoid_account.trade(alt_idr_pair, 'sell', amount_to_sell, price_to_sell, alt_symbol)
@@ -319,20 +362,23 @@ def path_idr_btc_alt(market_pair_btc, market_pair_idr, alt_btc_pair, alt_idr_pai
         logger.debug(json.dumps(trade_result))
 
     order_id = trade_result['return']['order_id']
-    order_info = bitcoincoid_account.getOrder(order_id, alt_idr_pair)
-    logger.debug(json.dumps(order_info))
-    while order_info['return']['order']['status'] != 'filled':
-        logger.info('Waiting for orders to be finalized, sleep %s seconds' % SLEEP_SECONDS)
-        time.sleep(SLEEP_SECONDS) # sleep for 5 secs, wait for orders to finalize
-        wait_time_seconds += SLEEP_SECONDS
-        logger.debug(json.dumps(order_info))
 
-        # corrective action while nyangkuts
-        if wait_time_seconds >= LAST_STEP_WAIT_TIME_SECONDS:
-            order_info = corrective_action(pair=alt_idr_pair, order_info=order_info)
-            order_id = order_info['return']['order']['order_id']
-            corrective_action_triggered = True
-            wait_time_seconds = 0
+    remains = float([value for key, value in trade_result['return'].items() if 'remain_' in key.lower()][0])
+    if remains != 0:
+        order_info = bitcoincoid_account.getOrder(order_id, alt_idr_pair)
+        logger.debug(json.dumps(order_info))
+        while order_info['return']['order']['status'] != 'filled':
+            logger.info('Waiting for orders to be finalized, sleep %s seconds' % SLEEP_SECONDS)
+            time.sleep(SLEEP_SECONDS) # sleep for 5 secs, wait for orders to finalize
+            wait_time_seconds += SLEEP_SECONDS
+            logger.debug(json.dumps(order_info))
+
+            # corrective action while nyangkuts
+            if wait_time_seconds >= LAST_STEP_WAIT_TIME_SECONDS:
+                order_info = corrective_action(pair=alt_idr_pair, order_info=order_info)
+                order_id = order_info['return']['order']['order_id']
+                corrective_action_triggered = True
+                wait_time_seconds = 0
     
     # logger.debug('Last state: %s ' % bitcoincoid_account.getInfo())
 
@@ -346,6 +392,13 @@ def path_idr_alt_btc(market_pair_btc, market_pair_idr, alt_btc_pair, alt_idr_pai
 
     price_to_buy = config_path[path_name]['step1_alt_buy_price']
     amount_to_buy = amount_idr
+
+    latest_price = get_latest_price(alt_idr_pair, 'buy')
+    if latest_price > price_to_buy:
+        logger.info('TERCYDUK, nyaris kepergok bos, harga %s jadi %s, KABUR KABUR KABUR' % (price_to_buy, latest_price))
+        return
+
+    price_to_buy = latest_price
 
     logger.info('Put order to buy %s at price %.10f, amount %.10f' % (alt_symbol, price_to_buy, amount_to_buy))
     trade_result = bitcoincoid_account.trade(alt_idr_pair, 'buy', amount_to_buy, price_to_buy, 'idr')
@@ -364,31 +417,41 @@ def path_idr_alt_btc(market_pair_btc, market_pair_idr, alt_btc_pair, alt_idr_pai
     amount_alt_received = float(spent_rp / price_to_buy)
 
     logger.info('Successfully put buy %s on %.10f amount %.10f' % (alt_symbol, price_to_buy, amount_to_buy))
-    order_info = bitcoincoid_account.getOrder(order_id, alt_idr_pair)
-    logger.debug(json.dumps(order_info))
-    while order_info['return']['order']['status'] != 'filled':
-        logger.info('Waiting for orders to be finalized, sleep %s seconds' % SLEEP_SECONDS)
-        time.sleep(SLEEP_SECONDS)
-        wait_time_seconds += SLEEP_SECONDS
+    remains = float([value for key, value in trade_result['return'].items() if 'remain_' in key.lower()][0])
+    if remains != 0:
         order_info = bitcoincoid_account.getOrder(order_id, alt_idr_pair)
         logger.debug(json.dumps(order_info))
-        
-        # corrective action while nyangkuts
-        if wait_time_seconds >= MAX_WAIT_TIME_SECONDS:
-            order_info = corrective_action(pair=alt_idr_pair, order_info=order_info)
-            order_id = order_info['return']['order']['order_id']
-            corrective_action_triggered = True
-            wait_time_seconds = 0
-    
-    
+        while order_info['return']['order']['status'] != 'filled':
+            logger.info('Waiting for orders to be finalized, sleep %s seconds' % SLEEP_SECONDS)
+            time.sleep(SLEEP_SECONDS)
+            wait_time_seconds += SLEEP_SECONDS
+            order_info = bitcoincoid_account.getOrder(order_id, alt_idr_pair)
+            logger.debug(json.dumps(order_info))
+            
+            # corrective action while nyangkuts
+            if wait_time_seconds >= MAX_WAIT_TIME_SECONDS:
+                order_info = corrective_action(pair=alt_idr_pair, order_info=order_info, is_first_step=True)
+                order_id = order_info['return']['order']['order_id']
+
+                #if first step was failure, bailing out from trade
+                if (not corrective_action_triggered) and order_info.get('abort_signal'):
+                    latest_price = get_latest_price(alt_idr_pair, 'buy')
+                    logger.info('TERCYDUK, nyaris kepergok bos, harga %s jadi %s, KABUR KABUR KABUR' % (price_to_buy, latest_price))
+                    return
+
+                corrective_action_triggered = True
+                wait_time_seconds = 0
+
+                
     # buy BTC using alt
     price_to_buy = config_path[path_name]['step2_alt_sell_price']
     amount_to_buy = amount_alt_received
+    # price_to_buy = get_latest_price(alt_btc_pair, 'sell')
 
     if corrective_action_triggered:
         current_coins = get_current_coin_amount(alt_symbol)
         amount_to_buy = amount_alt_received if amount_alt_received < current_coins else current_coins
-        price_to_buy = get_latest_price(alt_btc_pair, 'sell')
+        price_to_buy = get_latest_price(alt_btc_pair, 'sell', amount_to_buy)
     
     logger.info('Put order to buy BTC from %s at price %.10f, amount %.10f' % (alt_symbol, price_to_buy, amount_to_buy))
     trade_result = bitcoincoid_account.trade(alt_btc_pair, 'sell', amount_to_buy, price_to_buy, alt_symbol)
@@ -406,31 +469,34 @@ def path_idr_alt_btc(market_pair_btc, market_pair_idr, alt_btc_pair, alt_idr_pai
     amount_btc_received = amount_alt_received * price_to_buy
 
     logger.info('Successfully put buy BTC on %s amount %.10f' % (price_to_buy, amount_to_buy))
-    order_info = bitcoincoid_account.getOrder(order_id, alt_btc_pair)
-    logger.debug(json.dumps(order_info))
-    while order_info['return']['order']['status'] != 'filled':
-        logger.info('Waiting for orders to be finalized, sleep %s seconds' % SLEEP_SECONDS)
-        time.sleep(SLEEP_SECONDS)
-        wait_time_seconds += SLEEP_SECONDS
+    remains = float([value for key, value in trade_result['return'].items() if 'remain_' in key.lower()][0])
+    if remains != 0:
         order_info = bitcoincoid_account.getOrder(order_id, alt_btc_pair)
         logger.debug(json.dumps(order_info))
+        while order_info['return']['order']['status'] != 'filled':
+            logger.info('Waiting for orders to be finalized, sleep %s seconds' % SLEEP_SECONDS)
+            time.sleep(SLEEP_SECONDS)
+            wait_time_seconds += SLEEP_SECONDS
+            order_info = bitcoincoid_account.getOrder(order_id, alt_btc_pair)
+            logger.debug(json.dumps(order_info))
 
-        # corrective action while nyangkuts
-        if wait_time_seconds >= MAX_WAIT_TIME_SECONDS:
-            order_info = corrective_action(pair=alt_btc_pair, order_info=order_info)
-            order_id = order_info['return']['order']['order_id']
-            corrective_action_triggered = True
-            wait_time_seconds = 0
-    
+            # corrective action while nyangkuts
+            if wait_time_seconds >= MAX_WAIT_TIME_SECONDS:
+                order_info = corrective_action(pair=alt_btc_pair, order_info=order_info)
+                order_id = order_info['return']['order']['order_id']
+                corrective_action_triggered = True
+                wait_time_seconds = 0
+        
     
     # sell BTC to IDR
     price_to_sell = config_path[path_name]['step3_btc_sell_price']
     amount_to_sell = amount_btc_received
+    price_to_sell = get_latest_price('btc_idr', 'sell')
 
     if corrective_action_triggered:
         current_coins = get_current_coin_amount('btc')
         amount_to_sell = amount_btc_received if amount_btc_received < current_coins else current_coins
-        price_to_sell = get_latest_price('btc_idr', 'sell')
+        # price_to_sell = get_latest_price('btc_idr', 'sell')
     
     logger.info('Put order to sell BTC to IDR at price %.10f' % (price_to_sell))
     trade_result = bitcoincoid_account.trade('btc_idr', 'sell', amount_to_sell, price_to_sell, 'btc')
@@ -443,52 +509,71 @@ def path_idr_alt_btc(market_pair_btc, market_pair_idr, alt_btc_pair, alt_idr_pai
         logger.debug(json.dumps(trade_result))
 
     order_id = trade_result['return']['order_id']
-    order_info = bitcoincoid_account.getOrder(order_id, 'btc_idr')
-    logger.debug(json.dumps(order_info))
-    while order_info['return']['order']['status'] != 'filled':
-        logger.info('Waiting for orders to be finalized, sleep %s seconds' % SLEEP_SECONDS)
-        time.sleep(SLEEP_SECONDS) 
-        wait_time_seconds += SLEEP_SECONDS
+    remains = float([value for key, value in trade_result['return'].items() if 'remain_' in key.lower()][0])
+    if remains != 0:
         order_info = bitcoincoid_account.getOrder(order_id, 'btc_idr')
         logger.debug(json.dumps(order_info))
+        while order_info['return']['order']['status'] != 'filled':
+            logger.info('Waiting for orders to be finalized, sleep %s seconds' % SLEEP_SECONDS)
+            time.sleep(SLEEP_SECONDS) 
+            wait_time_seconds += SLEEP_SECONDS
+            order_info = bitcoincoid_account.getOrder(order_id, 'btc_idr')
+            logger.debug(json.dumps(order_info))
 
-        # its the latest step anyway, give it one minutes before correction to avoid taker
-        if wait_time_seconds >= LAST_STEP_WAIT_TIME_SECONDS:
-            order_info = corrective_action(pair='btc_idr', order_info=order_info)
-            order_id = order_info['return']['order']['order_id']
-            corrective_action_triggered = True
-            wait_time_seconds = 0
-    
+            # its the latest step anyway, give it one minutes before correction to avoid taker
+            if wait_time_seconds >= LAST_STEP_WAIT_TIME_SECONDS:
+                order_info = corrective_action(pair='btc_idr', order_info=order_info)
+                order_id = order_info['return']['order']['order_id']
+                corrective_action_triggered = True
+                wait_time_seconds = 0
+        
     # logger.debug(bitcoincoid_account.getInfo())
 
 # sometimes, order is not fulfilled due to market changes. If in (x) time it's not filled, do corrective action
 # 1. cancel order
 # 2. put new order with latest price
-def corrective_action(pair, order_info):
+def corrective_action(pair, order_info, is_first_step=False):
+    
+    MINIMUM_ORDER = {
+        'idr': 1,
+        'btc': 0.0001,
+        'str': 1,
+        'xrp': 1,
+        'eth': 0.0001
+    }
+    
     logger.info('Correcting %s ' % pair)
     order_id = order_info['return']['order']['order_id']
     transaction_type = order_info['return']['order']['type']
 
     # if the latest price same as our placed order, do nothing
     price = get_latest_price(pair, transaction_type)
-    if price == float(order_info['return']['order']['price']):
+    if price == float(order_info['return']['order']['price']) and (not is_first_step):
         return order_info
 
     cancel_order = bitcoincoid_account.cancelOrder(order_id, pair, transaction_type)
     logger.debug(json.dumps(cancel_order))
     while cancel_order['success'] != 1:
+        # assume it's already filled
+        if 'invalid order' in cancel_order['error']:
+            break
+        time.sleep(0.3)
         cancel_order = bitcoincoid_account.cancelOrder(order_id, pair, transaction_type)
         logger.debug(json.dumps(cancel_order))
-        # assume it's already filled
-        if cancel_order['success'] != 1:
-            if 'invalid order' in cancel_order['error']:
-                break
-        time.sleep(1)
+
     
     # if somehow order is filled before its cancelled
     order_info = bitcoincoid_account.getOrder(order_id, pair)
+    while order_info['success'] != 1:
+        time.sleep(0.3)
+        order_info = bitcoincoid_account.getOrder(order_id, pair)
     logger.debug(json.dumps(order_info))
     if order_info['return']['order']['status'] == 'filled':
+        return order_info
+    
+    # if we're in the first step and order was failure, bailing out
+    if is_first_step and (order_info['return']['order']['order_rp'] == order_info['return']['order']['remain_rp']):
+        order_info['abort_signal'] = True
         return order_info
     
     amount = float([value for key, value in order_info['return']['order'].items() if 'remain_' in key.lower()][0])
@@ -520,7 +605,7 @@ def get_current_coin_amount(coin_symbol):
         account_info = bitcoincoid_account.getInfo()
     return float(account_info['return']['balance'][coin_symbol])
 
-def get_latest_price(pair, transaction_type):
+def get_latest_price(pair, transaction_type, min_volume=0):
     url = base_url + pair + '/depth'
     response = requests.get(url)
     while response.status_code != 200:
@@ -532,18 +617,42 @@ def get_latest_price(pair, transaction_type):
     highest_sell = float(trade_list['sell'][0][0])
     
     if transaction_type == 'buy':
-        return highest_sell
+        if min_volume > float(trade_list['sell'][0][1]):
+            for market_data in trade_list['sell']:
+                if float(market_data[1]) > (min_volume):
+                    highest_sell = float(market_data[0])
+                    return highest_sell
+                    break
+        else:
+            return highest_sell
     elif transaction_type == 'sell' and pair[-3:] != 'btc' :
-        # assume price in IDR
-        highest_buy = float(trade_list['buy'][0][0]) + float(pip[pair])
-        #if we avoid taker, keep it, if not, bye
-        if float(trade_list['sell'][0][0]) == highest_buy:
-            return float(trade_list['buy'][0][0])
+        return highest_buy
+        # # assume price in IDR
+        # highest_buy = float(trade_list['buy'][0][0]) + float(pip[pair])
+        # #if we avoid taker, keep it, if not, bye
+        # if float(trade_list['sell'][0][0]) == highest_buy:
+        #     return float(trade_list['buy'][0][0])
+        # else:
+        #     return highest_buy
+    else:
+        if min_volume > float(trade_list['buy'][0][1]):
+            for market_data in trade_list['buy']:
+                if float(market_data[1]) > (min_volume):
+                    highest_buy = float(market_data[0])
+                    return highest_buy
+                    break
         else:
             return highest_buy
-    else:
-        return highest_buy
 
+def is_price_make_sense(btc_pair, alt_pair):
+    pairs = {'btc_idr'}
+    for pair in pairs:
+        
+        url = base_url + pairs[pair] + '/depth'
+        req_result[pair] = session.get(url, proxies=proxies)
+    return
+
+previous_idr_balance = get_current_coin_amount('idr')
 market_depths = fetch_market_data()
 max_profit = 0
 max_profit_path = ''
@@ -554,10 +663,12 @@ highest_target = 0
 highest_partition = 0
 profit_path = {}
 
-for portion in range(MAX_PARTITION, 1, -1):
+logger.info('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+
+for portion in range(MAX_PARTITION, 0, -1):
     amount_idr = (portion / MAX_PARTITION) * modal_duid
-    calculate_idr_btc_alt_path(amount_idr)
-    calculate_idr_alt_btc_path(amount_idr)
+    calculate_idr_btc_alt_path(initial_amount=amount_idr, fee=fee_portion, safety_net=SAFETY_NET_MULTIPLIER, alt_symbol_list=ALT_SYMBOL_LIST)
+    calculate_idr_alt_btc_path(initial_amount=amount_idr, fee=fee_portion, safety_net=SAFETY_NET_MULTIPLIER, alt_symbol_list=ALT_SYMBOL_LIST)
     # print(config_path)
 
     for path_name in config_path:
@@ -578,7 +689,7 @@ for portion in range(MAX_PARTITION, 1, -1):
                 highest_partition = portion
                 highest_target = amount_idr + (amount_idr * threshold)
     else:
-        logger.info(config_path)
+        logger.info(json.dumps(config_path))
         if max_profit_path == 'IDR_BTC_ETH':
             path_idr_btc_alt('ETH/BTC', 'ETH/IDR', 'eth_btc', 'eth_idr', 'eth', 'IDR_BTC_ETH', amount_idr)
         elif max_profit_path == 'IDR_BTC_LTC':
@@ -604,6 +715,22 @@ for portion in range(MAX_PARTITION, 1, -1):
 if max_profit_path == '':
     logger.info('Nothing to take profit')
     logger.info('Max path %s at partition %s percentage %s value %s target %s' % (highest_path, highest_partition, highest_profit_percentage, highest_idr, highest_target))
+
+current_idr_balance = get_current_coin_amount('idr')
+profit_idr = current_idr_balance - previous_idr_balance
+
+logger.info('Previous Balance IDR: %s' % previous_idr_balance)
+logger.info('Current Balance IDR: %s' % current_idr_balance)
+if int(profit_idr) == 0:
+    logger.info('Ngepet kali ini unfaedah Bos!!')
+
+if int(profit_idr) > 0:
+    logger.info('Opit Bos Opit Bos IDR %s' % profit_idr)
+
+if int(profit_idr) < 0:
+    logger.info('Kepergok warga bos, kita merugi IDR %s' % profit_idr)
+
+logger.info('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
 
 # TEST AREAS
 # config_path['IDR_XLM_BTC']['step1_alt_buy_price'] = 900

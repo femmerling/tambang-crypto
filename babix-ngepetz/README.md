@@ -46,17 +46,19 @@ while true; do SECONDS=0; python3.6 babix.py; sleep $((RANDOM%10+20-$SECONDS)); 
 # DOCKERIZE
 
 ENV_VAR:
-- API_KEY : API_KEY
-- API_SECRET : API_SECRET
-- SLEEP_SECONDS : 5
-- MAX_WAIT_TIME_SECONDS : 30
-- LAST_STEP_WAIT_TIME_SECONDS : 30
-- BASE_URL : https://vip.bitcoin.co.id/api/
-- PRIVATE_URL : https://vip.bitcoin.co.id/tapi/
-- MODAL_DUID : 100000 # modal uang kamuuu
-- FEE_PORTION : 0.003 # maker taker fee
-- THRESHOLD : 0.003 # margin keuntungan 0,3% = 0,3 * 100 = 0,003
-- MAX_PARTITION : 20
+- API_KEY : "API_KEY"
+- API_SECRET : "API_SECRET"
+- SLEEP_SECONDS : "5"
+- MAX_WAIT_TIME_SECONDS : "30"
+- LAST_STEP_WAIT_TIME_SECONDS : "30"
+- BASE_URL : "https://vip.bitcoin.co.id/api/"
+- PRIVATE_URL : "https://vip.bitcoin.co.id/tapi/"
+- MODAL_DUID : "100000" # modal uang kamuuu
+- FEE_PORTION : "0.003" # maker taker fee
+- THRESHOLD : "0.003" # margin keuntungan 0,3% = 0,3 * 100 = 0,003
+- MAX_PARTITION : "20"
+- SAFETY_NET_MULTIPLIER : "8"
+- ALT_TO_TRADE : "ETH LTC XLM XRP NXT" # alt coin to trade with our bot
 
 ## **How to build service**
 ```bash
@@ -69,16 +71,18 @@ $ docker build -f docker/Dockerfile -t coralteam/babix-ngepetz:latest .
 $ docker run -d --name babix-ngepetz \
       -e API_KEY="API_KEY" \
       -e API_SECRET="API_SECRET" \
-      -e SLEEP_SECONDS="5" \
-      -e MAX_WAIT_TIME_SECONDS="30" \
-      -e LAST_STEP_WAIT_TIME_SECONDS="30" \
+      -e SLEEP_SECONDS="2" \
+      -e MAX_WAIT_TIME_SECONDS="2" \
+      -e LAST_STEP_WAIT_TIME_SECONDS="2" \
       -e BASE_URL="https://vip.bitcoin.co.id/api/" \
       -e PRIVATE_URL="https://vip.bitcoin.co.id/tapi/" \
       -e MODAL_DUID="100000" \
       -e FEE_PORTION="0.003" \
       -e THRESHOLD="0.003" \
       -e MAX_PARTITION="20" \
-      coralteam/babix-ngepets:latest
+      -e SAFETY_NET_MULTIPLIER="8" \
+      -e ALT_TO_TRADE="ETH LTC XLM XRP NXT" \
+      coralteam/babix-ngepets:v0.2.1.0
 ```
 
 ## Check Log
