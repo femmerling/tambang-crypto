@@ -553,6 +553,9 @@ highest_path = ''
 highest_target = 0
 highest_partition = 0
 profit_path = {}
+previous_idr_balance = get_current_coin_amount('idr')
+
+logger.info('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
 
 for portion in range(MAX_PARTITION, 1, -1):
     amount_idr = (portion / MAX_PARTITION) * modal_duid
@@ -604,6 +607,22 @@ for portion in range(MAX_PARTITION, 1, -1):
 if max_profit_path == '':
     logger.info('Nothing to take profit')
     logger.info('Max path %s at partition %s percentage %s value %s target %s' % (highest_path, highest_partition, highest_profit_percentage, highest_idr, highest_target))
+
+current_idr_balance = get_current_coin_amount('idr')
+profit_idr = current_idr_balance - previous_idr_balance
+
+logger.info('Previous Balance IDR: %s' % previous_idr_balance)
+logger.info('Current Balance IDR: %s' % current_idr_balance)
+if int(profit_idr) == 0:
+    logger.info('Ngepet kali ini unfaedah Bos!!')
+
+if int(profit_idr) > 0:
+    logger.info('Opit Bos Opit Bos IDR %s' % profit_idr)
+
+if int(profit_idr) < 0:
+    logger.info('Kepergok warga bos, kita merugi IDR %s' % profit_idr)
+
+logger.info('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
 
 # TEST AREAS
 # config_path['IDR_XLM_BTC']['step1_alt_buy_price'] = 900
