@@ -12,7 +12,7 @@ from logging.handlers import RotatingFileHandler
 
 from os import environ
 
-__VERSION__ = '0.2.0.0'
+__VERSION__ = '0.2.1.0'
 
 def set_default_config():
     environ.setdefault("API_KEY", "API_KEY")
@@ -27,6 +27,7 @@ def set_default_config():
     environ.setdefault("THRESHOLD", "0.005")
     environ.setdefault("MAX_PARTITION", "10")
     environ.setdefault("SAFETY_NET_MULTIPLIER", "8")
+    environ.setdefault("ALT_TO_TRADE", "ETH LTC XLM XRP NXT")
 
 set_default_config()
 
@@ -68,7 +69,7 @@ pip = {
     'btc_idr': 100
 }
 
-ALT_SYMBOL_LIST = ['ETH', 'LTC', 'XLM', 'XRP', 'NXT']
+ALT_SYMBOL_LIST = str(environ.get('ALT_TO_TRADE')).split() # alt coin to trade with our bot
 SAFETY_NET_MULTIPLIER = int(environ.get('SAFETY_NET_MULTIPLIER')) #ensure market has 8 times of our trade volume
 
 modal_duid = int(environ.get('MODAL_DUID'))
