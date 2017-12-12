@@ -83,5 +83,8 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+production/
+
+babix.test.py
 
 
