@@ -27,6 +27,7 @@ def set_default_config():
     environ.setdefault("SAFETY_NET_MULTIPLIER", "8")
     environ.setdefault("ALT_TO_TRADE", "ETH LTC XLM XRP NXT")
     environ.setdefault("MODAL_NGAMBANG", "False")
+    environ.setdefault("SHARED_DEPOSIT", "0.5")
 
 set_default_config()
 
@@ -73,11 +74,12 @@ ALT_SYMBOL_LIST = str(environ.get('ALT_TO_TRADE')).split() # alt coin to trade w
 SAFETY_NET_MULTIPLIER = int(environ.get('SAFETY_NET_MULTIPLIER')) #ensure market has 8 times of our trade volume
 MODAL_NGAMBANG = bool(environ.get('MODAL_NGAMBANG'))
 
+shared_deposit = float(environ.get('SHARED_DEPOSIT'))
 duid_ngambang = 0
 if MODAL_NGAMBANG == True:
     try:
         namafile = open(NAMA_FILE_DUIT, "r")
-        duid_ngambang = int(float(namafile.readline()))
+        duid_ngambang = int(float(namafile.readline())) * shared_deposit
         namafile.close
     except FileNotFoundError:
         print("Filenya gak ada")
