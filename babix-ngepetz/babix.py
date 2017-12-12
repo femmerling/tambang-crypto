@@ -10,7 +10,7 @@ from requests_futures.sessions import FuturesSession
 import vipbtc
 from vipio.cfsession import create_scraper
 
-__VERSION__ = '0.3.0.0'
+__VERSION__ = '0.3.0.1'
 
 def set_default_config():
     environ.setdefault("API_KEY", "")
@@ -282,7 +282,13 @@ def path_idr_btc_alt(market_pair_btc, market_pair_idr, alt_btc_pair, alt_idr_pai
             
             # corrective action while nyangkuts
             if wait_time_seconds >= MAX_WAIT_TIME_SECONDS:
-                order_info = corrective_action(pair='btc_idr', order_info=order_info, is_first_step=True)
+
+                # bugfix: if it's half bought, it will looping forever due to corrective action
+                if not corrective_action_triggered:
+                    order_info = corrective_action(pair='btc_idr', order_info=order_info, is_first_step=True)
+                else 
+                    order_info = corrective_action(pair='btc_idr', order_info=order_info)
+                
                 order_id = order_info['return']['order']['order_id']
 
                 #if first step was failure, bailing out from trade
@@ -430,7 +436,12 @@ def path_idr_alt_btc(market_pair_btc, market_pair_idr, alt_btc_pair, alt_idr_pai
             
             # corrective action while nyangkuts
             if wait_time_seconds >= MAX_WAIT_TIME_SECONDS:
-                order_info = corrective_action(pair=alt_idr_pair, order_info=order_info, is_first_step=True)
+                
+                # bugfix: if it's half bought, it will looping forever due to corrective action
+                if not corrective_action_triggered:
+                    order_info = corrective_action(pair=alt_idr_pair, order_info=order_info, is_first_step=True)
+                else 
+                    order_info = corrective_action(pair=alt_idr_pair, order_info=order_info)
                 order_id = order_info['return']['order']['order_id']
 
                 #if first step was failure, bailing out from trade
