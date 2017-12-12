@@ -197,11 +197,11 @@ class VipIo(object):
 
 
 if __name__ == '__main__':
-    tickers = get_tickers(['str_idr', 'btc_idr'], 20)
+    tickers = VipIo.get_tickers(['str_idr', 'btc_idr'], 20)
     print(tickers)
 
-    depths = get_depths(['str_idr', 'btc_idr'], 20)
+    depths = VipIo.get_depths(['str_idr', 'btc_idr'], 20)
     print(depths)
 
-    trades = get_trades(['str_idr', 'btc_idr'], 20)
+    trades = VipIo.get_trades(['str_idr', 'btc_idr'], 20)
     print(trades)
