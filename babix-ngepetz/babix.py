@@ -286,7 +286,7 @@ def path_idr_btc_alt(market_pair_btc, market_pair_idr, alt_btc_pair, alt_idr_pai
                 # bugfix: if it's half bought, it will looping forever due to corrective action
                 if not corrective_action_triggered:
                     order_info = corrective_action(pair='btc_idr', order_info=order_info, is_first_step=True)
-                else 
+                else:
                     order_info = corrective_action(pair='btc_idr', order_info=order_info)
                 
                 order_id = order_info['return']['order']['order_id']
@@ -440,7 +440,7 @@ def path_idr_alt_btc(market_pair_btc, market_pair_idr, alt_btc_pair, alt_idr_pai
                 # bugfix: if it's half bought, it will looping forever due to corrective action
                 if not corrective_action_triggered:
                     order_info = corrective_action(pair=alt_idr_pair, order_info=order_info, is_first_step=True)
-                else 
+                else:
                     order_info = corrective_action(pair=alt_idr_pair, order_info=order_info)
                 order_id = order_info['return']['order']['order_id']
 
