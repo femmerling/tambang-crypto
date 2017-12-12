@@ -262,6 +262,8 @@ def path_idr_btc_alt(market_pair_btc, market_pair_idr, alt_btc_pair, alt_idr_pai
         time.sleep(1)
         trade_result = bitcoincoid_account.trade('btc_idr', 'buy', amount_to_buy, price_to_buy, 'idr')
         logger.debug(json.dumps(trade_result))
+        if "Minimum order" in trade_result['error']:
+            return
 
     order_id = trade_result['return']['order_id']
     spent_rp = float(trade_result['return']['remain_rp']) + float(trade_result['return']['spend_rp'])
@@ -321,6 +323,8 @@ def path_idr_btc_alt(market_pair_btc, market_pair_idr, alt_btc_pair, alt_idr_pai
         time.sleep(1)
         trade_result = bitcoincoid_account.trade(alt_btc_pair, 'buy', amount_to_buy, price_to_buy, 'btc')
         logger.debug(json.dumps(trade_result))
+        if "Minimum order" in trade_result['error']:
+            return
 
     order_id = trade_result['return']['order_id']
 
@@ -366,6 +370,8 @@ def path_idr_btc_alt(market_pair_btc, market_pair_idr, alt_btc_pair, alt_idr_pai
         time.sleep(1)
         trade_result = bitcoincoid_account.trade(alt_idr_pair, 'sell', amount_to_sell, price_to_sell, alt_symbol)
         logger.debug(json.dumps(trade_result))
+        if "Minimum order" in trade_result['error']:
+            return
 
     order_id = trade_result['return']['order_id']
 
@@ -415,7 +421,8 @@ def path_idr_alt_btc(market_pair_btc, market_pair_idr, alt_btc_pair, alt_idr_pai
         time.sleep(1)
         trade_result = bitcoincoid_account.trade(alt_idr_pair, 'buy', amount_to_buy, price_to_buy, 'idr')
         logger.debug(json.dumps(trade_result))
-
+        if "Minimum order" in trade_result['error']:
+            return
 
     order_id = trade_result['return']['order_id']
 
@@ -474,7 +481,8 @@ def path_idr_alt_btc(market_pair_btc, market_pair_idr, alt_btc_pair, alt_idr_pai
         time.sleep(1)
         trade_result = bitcoincoid_account.trade(alt_btc_pair, 'sell', amount_to_buy, price_to_buy, alt_symbol)
         logger.debug(json.dumps(trade_result))
-
+        if "Minimum order" in trade_result['error']:
+            return
 
     order_id = trade_result['return']['order_id']
     amount_btc_received = amount_alt_received * price_to_buy
@@ -518,6 +526,8 @@ def path_idr_alt_btc(market_pair_btc, market_pair_idr, alt_btc_pair, alt_idr_pai
         time.sleep(1)
         trade_result = bitcoincoid_account.trade('btc_idr', 'sell', amount_to_sell, price_to_sell, 'btc')
         logger.debug(json.dumps(trade_result))
+        if "Minimum order" in trade_result['error']:
+            return
 
     order_id = trade_result['return']['order_id']
     remains = float([value for key, value in trade_result['return'].items() if 'remain_' in key.lower()][0])
@@ -599,6 +609,8 @@ def corrective_action(pair, order_info, is_first_step=False):
         trade_result = bitcoincoid_account.trade(pair, transaction_type, amount, price, curr_symbol)
         logger.debug(json.dumps(trade_result))
         time.sleep(1)
+        if "Minimum order" in trade_result['error']:
+            return
 
     order_id = trade_result['return']['order_id']
     order_info = bitcoincoid_account.getOrder(order_id, pair)
@@ -724,7 +736,6 @@ for portion in range(MAX_PARTITION, 0, -1):
         break
 
 if max_profit_path == '':
-    logger.info('Nothing to take profit')
     logger.info('Max path %s at partition %s percentage %s value %s target %s' % (highest_path, highest_partition, highest_profit_percentage, highest_idr, highest_target))
 
 current_idr_balance = get_current_coin_amount('idr')
