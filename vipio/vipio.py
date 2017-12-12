@@ -1,14 +1,17 @@
+from cfsession import create_scraper
+
 import asyncio
 import concurrent.futures
-import requests
-import time
-import hmac
 import hashlib
+import hmac
+import time
 
 
 BASE_URL = 'https://vip.bitcoin.co.id'
 PUBLIC_API_URL = '%s/api' % BASE_URL
 PRIVATE_API_URL = '%s/tapi' % BASE_URL
+
+requests = create_scraper()
 
 
 async def _get_public_api(method, pairs=[], max_workers=20):
