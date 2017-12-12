@@ -26,6 +26,7 @@ def set_default_config():
     environ.setdefault("MAX_PARTITION", "10")
     environ.setdefault("SAFETY_NET_MULTIPLIER", "8")
     environ.setdefault("ALT_TO_TRADE", "ETH LTC XLM XRP NXT")
+    environ.setdefault("MODAL_NGAMBANG", "False")
 
 set_default_config()
 
@@ -39,6 +40,7 @@ SLEEP_SECONDS = float(environ.get('SLEEP_SECONDS'))
 MAX_WAIT_TIME_SECONDS = float(environ.get('MAX_WAIT_TIME_SECONDS'))
 # wait second at last step (waiting for sell to IDR)
 LAST_STEP_WAIT_TIME_SECONDS = float(environ.get('LAST_STEP_WAIT_TIME_SECONDS'))
+NAMA_FILE_DUIT = "catetan_duit.txt"
 
 bitcoincoid_account = vipbtc.TradeAPI(API_KEY, API_SECRET)
 
@@ -69,8 +71,24 @@ pip = {
 
 ALT_SYMBOL_LIST = str(environ.get('ALT_TO_TRADE')).split() # alt coin to trade with our bot
 SAFETY_NET_MULTIPLIER = int(environ.get('SAFETY_NET_MULTIPLIER')) #ensure market has 8 times of our trade volume
+MODAL_NGAMBANG = bool(environ.get('MODAL_NGAMBANG'))
 
-modal_duid = int(environ.get('MODAL_DUID'))
+duid_ngambang = 0
+if MODAL_NGAMBANG == True:
+    try:
+        namafile = open(NAMA_FILE_DUIT, "r")
+        duid_ngambang = int(float(namafile.readline()))
+        namafile.close
+    except FileNotFoundError:
+        print("Filenya gak ada")
+        namafile = open(NAMA_FILE_DUIT, "w")
+        namafile.write(str(duid_ngambang))
+        namafile.close
+
+if duid_ngambang < 1:
+    duid_ngambang = int(environ.get('MODAL_DUID'))
+
+modal_duid = duid_ngambang
 fee_portion = float(environ.get('FEE_PORTION'))
 threshold = float(environ.get('THRESHOLD')) # 0.3pct profit threshold
 net_portion = (1 - fee_portion)
@@ -290,7 +308,7 @@ def path_idr_btc_alt(market_pair_btc, market_pair_idr, alt_btc_pair, alt_idr_pai
                     order_info = corrective_action(pair='btc_idr', order_info=order_info, is_first_step=True)
                 else:
                     order_info = corrective_action(pair='btc_idr', order_info=order_info)
-                
+
                 order_id = order_info['return']['order']['order_id']
 
                 #if first step was failure, bailing out from trade
@@ -443,7 +461,7 @@ def path_idr_alt_btc(market_pair_btc, market_pair_idr, alt_btc_pair, alt_idr_pai
 
             # corrective action while nyangkuts
             if wait_time_seconds >= MAX_WAIT_TIME_SECONDS:
-                
+
                 # bugfix: if it's half bought, it will looping forever due to corrective action
                 if not corrective_action_triggered:
                     order_info = corrective_action(pair=alt_idr_pair, order_info=order_info, is_first_step=True)
@@ -743,6 +761,11 @@ profit_idr = current_idr_balance - previous_idr_balance
 
 logger.info('Previous Balance IDR: %s' % previous_idr_balance)
 logger.info('Current Balance IDR: %s' % current_idr_balance)
+
+namafile = open(NAMA_FILE_DUIT, "w")
+namafile.write(str(current_idr_balance))
+namafile.close
+
 if int(profit_idr) == 0:
     logger.info('Ngepet kali ini unfaedah Bos!!')
 
