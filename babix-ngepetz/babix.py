@@ -83,14 +83,12 @@ shared_deposit = float(environ.get('SHARED_DEPOSIT'))
 duid_ngambang = 0
 if MODAL_NGAMBANG == "true":
     try:
-        namafile = open(NAMA_FILE_DUIT, "r")
-        duid_ngambang = int(float(namafile.readline())) * shared_deposit
-        namafile.close
+        with open(NAMA_FILE_DUIT, 'r') as f:
+            duid_ngambang = int(float(f.readline())) * shared_deposit
     except FileNotFoundError:
-        print("Filenya gak ada 1")
-        namafile = open(NAMA_FILE_DUIT, "w")
-        namafile.write(str(duid_ngambang))
-        namafile.close
+        with open(NAMA_FILE_DUIT, 'w') as f:
+            print("Filenya gak ada 1")
+            f.write(str(duid_ngambang))
 
 if duid_ngambang < 1:
     duid_ngambang = int(environ.get('MODAL_DUID'))
