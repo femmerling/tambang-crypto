@@ -10,7 +10,7 @@ from requests_futures.sessions import FuturesSession
 import vipbtc
 from vipio.cfsession import create_scraper
 
-__VERSION__ = '0.3.0.1'
+__VERSION__ = '0.3.1.0'
 
 def set_default_config():
     environ.setdefault("API_KEY", "")
