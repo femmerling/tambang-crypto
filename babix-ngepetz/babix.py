@@ -11,7 +11,7 @@ import vipbtc
 from vipio.cfsession import create_scraper
 import pushbullet
 
-__VERSION__ = '0.3.1.0'
+__VERSION__ = '0.3.2.0'
 
 
 def set_default_config():
@@ -30,7 +30,7 @@ def set_default_config():
     environ.setdefault("ALT_TO_TRADE", "ETH LTC XLM XRP NXT")
     environ.setdefault("MODAL_NGAMBANG", "false")
     environ.setdefault("SHARED_DEPOSIT", "0.5")
-    environ.setdefault("PUSHBULLET_TOKEN", "o.4L1BkNFnoWne7ITUIBWDiYC8KMciqkVn")
+    environ.setdefault("PUSHBULLET_TOKEN", "")
 
 
 set_default_config()
