@@ -29,6 +29,8 @@ Modify babix.py
 - LAST_STEP_WAIT_TIME_SECONDS
 - proxy (if used)
 - MAX_PARTITION
+- SHARED_DEPOSIT
+- MODAL_NGAMBANG
 - and other parts (you can limit the number of monitored pairs, but dont forget to change in `calculate_idr_btc_alt_path` and `calculate_idr_alt_btc_path`)
 
 How to run:
@@ -58,6 +60,8 @@ ENV_VAR:
 - THRESHOLD : "0.003" # margin keuntungan 0,3% = 0,3 * 100 = 0,003
 - MAX_PARTITION : "20"
 - SAFETY_NET_MULTIPLIER : "8"
+- SHARED_DEPOSIT : "0.5"
+- MODAL_NGAMBANG : "True"
 - ALT_TO_TRADE : "ETH LTC XLM XRP NXT" # alt coin to trade with our bot
 
 ## **How to build service**
@@ -81,6 +85,8 @@ $ docker run -d --name babix-ngepetz \
       -e THRESHOLD="0.003" \
       -e MAX_PARTITION="20" \
       -e SAFETY_NET_MULTIPLIER="8" \
+      -e SHARED_DEPOSIT="0.5" \
+      -e MODAL_NGAMBANG="True" \
       -e ALT_TO_TRADE="ETH LTC XLM XRP NXT" \
       coralteam/babix-ngepets:v0.2.1.0
 ```

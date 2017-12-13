@@ -25,11 +25,11 @@ class Session:
         while not resp.ok:
             resp = api_exec(url=url, params=params, auth=auth, http_call=http_call)
             time.sleep(0.5)
-        
+
         return resp
-        
+
         # if not response.ok:
         #     msg = "API response error: %s".format(response.status_code)
         #     raise APIResponseError(msg)
-        
+
         # return response
