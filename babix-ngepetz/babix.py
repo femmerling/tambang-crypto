@@ -774,7 +774,10 @@ logger.info('Current Balance IDR: %s' % current_idr_balance)
 with open(NAMA_FILE_DUIT, 'w') as f:
     f.write(str(current_idr_balance))
 
-pb = pushbullet.PushBullet(PUSHBULLET_TOKEN) if PUSHBULLET_TOKEN else None
+try:
+    pb = pushbullet.PushBullet(PUSHBULLET_TOKEN) if PUSHBULLET_TOKEN else None
+except pushbullet.errors.PushbulletError:
+    pb = None
 
 if int(profit_idr) == 0:
     logger.info('Ngepet kali ini unfaedah Bos!!')
