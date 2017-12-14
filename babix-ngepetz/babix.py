@@ -774,20 +774,18 @@ logger.info('Current Balance IDR: %s' % current_idr_balance)
 with open(NAMA_FILE_DUIT, 'w') as f:
     f.write(str(current_idr_balance))
 
-try:
-    pb = pushbullet.PushBullet(PUSHBULLET_TOKEN) if PUSHBULLET_TOKEN else None
-except pushbullet.errors.PushbulletError:
-    pb = None
-
 if int(profit_idr) == 0:
     logger.info('Ngepet kali ini unfaedah Bos!!')
 
 if int(profit_idr) > 0:
     message = 'Opit Bos Opit Bos IDR %s' % profit_idr
     logger.info(message)
-    if pb:
+    try:
+        pb = pushbullet.PushBullet(PUSHBULLET_TOKEN) if PUSHBULLET_TOKEN else None
         pb.push_note(title='[BABIX] Opit Bos Opit Bos',
                      body=message)
+    except pushbullet.errors.PushbulletError:
+        pass
 
 if int(profit_idr) < 0:
     logger.info('Kepergok warga bos, kita merugi IDR %s' % profit_idr)
