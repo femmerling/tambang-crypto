@@ -795,10 +795,12 @@ if int(profit_idr) > 0:
     message = 'Opit Bos Opit Bos IDR %s' % profit_idr
     logger.info(message)
     try:
-        pb = pushbullet.PushBullet(PUSHBULLET_TOKEN) if PUSHBULLET_TOKEN else None
-        pb.push_note(title='[BABIX] Opit Bos Opit Bos',
-                     body=message)
+        if len(PUSHBULLET_TOKEN) > 0:
+            pb = pushbullet.PushBullet(PUSHBULLET_TOKEN) if PUSHBULLET_TOKEN else None
+            pb.push_note(title='[BABIX] Opit Bos Opit Bos', body=message)
     except pushbullet.errors.PushbulletError:
+        pass
+    except AttributeError:
         pass
 
 if int(profit_idr) < 0:
