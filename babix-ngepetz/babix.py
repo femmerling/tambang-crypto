@@ -11,7 +11,7 @@ import vipbtc
 from vipio.cfsession import create_scraper
 import pushbullet
 
-__VERSION__ = '0.3.2.0'
+__VERSION__ = '0.3.3.0'
 
 
 def set_default_config():
