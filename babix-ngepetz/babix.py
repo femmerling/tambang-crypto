@@ -11,7 +11,7 @@ import vipbtc
 from vipio.cfsession import create_scraper
 import pushbullet
 
-__VERSION__ = '0.3.2.0'
+__VERSION__ = '0.3.3.0'
 
 
 def set_default_config():
@@ -284,8 +284,10 @@ def path_idr_btc_alt(market_pair_btc, market_pair_idr, alt_btc_pair, alt_idr_pai
         time.sleep(1)
         trade_result = bitcoincoid_account.trade('btc_idr', 'buy', amount_to_buy, price_to_buy, 'idr')
         logger.debug(json.dumps(trade_result))
-        if trade_result['success'] == 0 and "Minimum order".lower() in trade_result['error'].lower():
-            return
+        if trade_result['success'] == 0:
+            error_result = trade_result['error'].lower()
+            if ("Minimum order".lower() in error_result) or ("Insufficient balance".lower() in error_result):
+                return
 
     order_id = trade_result['return']['order_id']
     spent_rp = float(trade_result['return']['remain_rp']) + float(trade_result['return']['spend_rp'])
@@ -345,8 +347,10 @@ def path_idr_btc_alt(market_pair_btc, market_pair_idr, alt_btc_pair, alt_idr_pai
         time.sleep(1)
         trade_result = bitcoincoid_account.trade(alt_btc_pair, 'buy', amount_to_buy, price_to_buy, 'btc')
         logger.debug(json.dumps(trade_result))
-        if trade_result['success'] == 0 and "Minimum order".lower() in trade_result['error'].lower():
-            return
+        if trade_result['success'] == 0:
+            error_result = trade_result['error'].lower()
+            if ("Minimum order".lower() in error_result) or ("Insufficient balance".lower() in error_result):
+                return
 
     order_id = trade_result['return']['order_id']
 
@@ -392,8 +396,10 @@ def path_idr_btc_alt(market_pair_btc, market_pair_idr, alt_btc_pair, alt_idr_pai
         time.sleep(1)
         trade_result = bitcoincoid_account.trade(alt_idr_pair, 'sell', amount_to_sell, price_to_sell, alt_symbol)
         logger.debug(json.dumps(trade_result))
-        if trade_result['success'] == 0 and "Minimum order".lower() in trade_result['error'].lower():
-            return
+        if trade_result['success'] == 0:
+            error_result = trade_result['error'].lower()
+            if ("Minimum order".lower() in error_result) or ("Insufficient balance".lower() in error_result):
+                return
 
     order_id = trade_result['return']['order_id']
 
@@ -444,8 +450,10 @@ def path_idr_alt_btc(market_pair_btc, market_pair_idr, alt_btc_pair, alt_idr_pai
         time.sleep(1)
         trade_result = bitcoincoid_account.trade(alt_idr_pair, 'buy', amount_to_buy, price_to_buy, 'idr')
         logger.debug(json.dumps(trade_result))
-        if trade_result['success'] == 0 and "Minimum order".lower() in trade_result['error'].lower():
-            return
+        if trade_result['success'] == 0:
+            error_result = trade_result['error'].lower()
+            if ("Minimum order".lower() in error_result) or ("Insufficient balance".lower() in error_result):
+                return
 
     order_id = trade_result['return']['order_id']
 
@@ -503,8 +511,10 @@ def path_idr_alt_btc(market_pair_btc, market_pair_idr, alt_btc_pair, alt_idr_pai
         time.sleep(1)
         trade_result = bitcoincoid_account.trade(alt_btc_pair, 'sell', amount_to_buy, price_to_buy, alt_symbol)
         logger.debug(json.dumps(trade_result))
-        if trade_result['success'] == 0 and "Minimum order".lower() in trade_result['error'].lower():
-            return
+        if trade_result['success'] == 0:
+            error_result = trade_result['error'].lower()
+            if ("Minimum order".lower() in error_result) or ("Insufficient balance".lower() in error_result):
+                return
 
     order_id = trade_result['return']['order_id']
     amount_btc_received = amount_alt_received * price_to_buy
@@ -547,8 +557,10 @@ def path_idr_alt_btc(market_pair_btc, market_pair_idr, alt_btc_pair, alt_idr_pai
         time.sleep(1)
         trade_result = bitcoincoid_account.trade('btc_idr', 'sell', amount_to_sell, price_to_sell, 'btc')
         logger.debug(json.dumps(trade_result))
-        if trade_result['success'] == 0 and "Minimum order".lower() in trade_result['error'].lower():
-            return
+        if trade_result['success'] == 0:
+            error_result = trade_result['error'].lower()
+            if ("Minimum order".lower() in error_result) or ("Insufficient balance".lower() in error_result):
+                return
 
     order_id = trade_result['return']['order_id']
     remains = float([value for key, value in trade_result['return'].items() if 'remain_' in key.lower()][0])
@@ -629,8 +641,10 @@ def corrective_action(pair, order_info, is_first_step=False):
         trade_result = bitcoincoid_account.trade(pair, transaction_type, amount, price, curr_symbol)
         logger.debug(json.dumps(trade_result))
         time.sleep(1)
-        if trade_result['success'] == 0 and "Minimum order".lower() in trade_result['error'].lower():
-            return
+        if trade_result['success'] == 0:
+            error_result = trade_result['error'].lower()
+            if ("Minimum order".lower() in error_result) or ("Insufficient balance".lower() in error_result):
+                return
 
     order_id = trade_result['return']['order_id']
     order_info = bitcoincoid_account.getOrder(order_id, pair)
@@ -781,10 +795,12 @@ if int(profit_idr) > 0:
     message = 'Opit Bos Opit Bos IDR %s' % profit_idr
     logger.info(message)
     try:
-        pb = pushbullet.PushBullet(PUSHBULLET_TOKEN) if PUSHBULLET_TOKEN else None
-        pb.push_note(title='[BABIX] Opit Bos Opit Bos',
-                     body=message)
+        if len(PUSHBULLET_TOKEN) > 0:
+            pb = pushbullet.PushBullet(PUSHBULLET_TOKEN) if PUSHBULLET_TOKEN else None
+            pb.push_note(title='[BABIX] Opit Bos Opit Bos', body=message)
     except pushbullet.errors.PushbulletError:
+        pass
+    except AttributeError:
         pass
 
 if int(profit_idr) < 0:
