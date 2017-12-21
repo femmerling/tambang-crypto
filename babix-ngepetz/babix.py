@@ -796,7 +796,7 @@ if int(profit_idr) == 0:
     logger.info('Ngepet kali ini unfaedah Bos!!')
 
 if int(profit_idr) > 0:
-    message = '[BABIX] Opit Bos Opit Bos IDR %s' % profit_idr
+    message = 'Opit Bos Opit Bos IDR %s' % profit_idr
     logger.info(message)
     try:
         if len(PUSHBULLET_TOKEN) > 0:
@@ -815,7 +815,7 @@ if int(profit_idr) > 0:
         pass
 
 if int(profit_idr) < 0:
-    message = '[BABIX] Digebukin warga bos, biaya Rumah Sakit IDR %s' % profit_idr
+    message = 'Digebukin warga bos, biaya Rumah Sakit IDR %s' % profit_idr
     logger.info(message)
     try:
         if len(PUSHBULLET_TOKEN) > 0:
