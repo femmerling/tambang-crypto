@@ -32,7 +32,7 @@ def set_default_config():
     environ.setdefault("MODAL_NGAMBANG", "false")
     environ.setdefault("SHARED_DEPOSIT", "0.5")
     environ.setdefault("PUSHBULLET_TOKEN", "")
-    environ.setdefault("TELEGRAM_BOT_TOKEN", "472836801:AAGQgDhB0dg471Nvqc9RjqiXZJ4K2qnieHQ") # @BabixBot
+    environ.setdefault("TELEGRAM_BOT_TOKEN", "472836801:AAGQgDhB0dg471Nvqc9RjqiXZJ4K2qnieHQ") # @BabixBot, default, hosted by sendz. Change this to your own bot if you want to
     environ.setdefault("TELEGRAM_USER_ID", "")
 
 
