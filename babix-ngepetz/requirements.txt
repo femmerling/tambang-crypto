@@ -17,3 +17,4 @@ Rx==1.6.0
 six==1.11.0
 urllib3==1.22
 websocket-client==0.44.0
+telepot==12.5

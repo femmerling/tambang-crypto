@@ -10,6 +10,7 @@ from requests_futures.sessions import FuturesSession
 import vipbtc
 from vipio.cfsession import create_scraper
 import pushbullet
+import telepot
 
 __VERSION__ = '0.3.3.0'
 
@@ -31,6 +32,8 @@ def set_default_config():
     environ.setdefault("MODAL_NGAMBANG", "false")
     environ.setdefault("SHARED_DEPOSIT", "0.5")
     environ.setdefault("PUSHBULLET_TOKEN", "")
+    environ.setdefault("TELEGRAM_BOT_TOKEN", "472836801:AAGQgDhB0dg471Nvqc9RjqiXZJ4K2qnieHQ") # @BabixBot, default, hosted by sendz. Change this to your own bot if you want to
+    environ.setdefault("TELEGRAM_USER_ID", "")
 
 
 set_default_config()
@@ -39,6 +42,8 @@ set_default_config()
 API_KEY = environ.get('API_KEY')
 API_SECRET = environ.get('API_SECRET')
 PUSHBULLET_TOKEN = environ.get('PUSHBULLET_TOKEN')
+TELEGRAM_BOT_TOKEN = environ.get('TELEGRAM_BOT_TOKEN')
+TELEGRAM_USER_ID = environ.get('TELEGRAM_USER_ID')
 
 # wait second until transaction filled
 SLEEP_SECONDS = float(environ.get('SLEEP_SECONDS'))
@@ -711,7 +716,6 @@ def is_price_make_sense(btc_pair, alt_pair):
         req_result[pair] = session.get(url, proxies=proxies)
     return
 
-
 previous_idr_balance = get_current_coin_amount('idr')
 market_depths = fetch_market_data()
 max_profit = 0
@@ -803,8 +807,31 @@ if int(profit_idr) > 0:
     except AttributeError:
         pass
 
+    try:
+        if len(TELEGRAM_USER_ID) > 0:
+            telegram = telepot.Bot(TELEGRAM_BOT_TOKEN)
+            telegram.sendMessage(TELEGRAM_USER_ID, message)
+    except AttributeError:
+        pass
+
 if int(profit_idr) < 0:
-    logger.info('Kepergok warga bos, kita merugi IDR %s' % profit_idr)
+    message = 'Digebukin warga bos, biaya Rumah Sakit IDR %s' % profit_idr
+    logger.info(message)
+    try:
+        if len(PUSHBULLET_TOKEN) > 0:
+            pb = pushbullet.PushBullet(PUSHBULLET_TOKEN) if PUSHBULLET_TOKEN else None
+            pb.push_note(title='[BABIX] Kepergok Warga Bos', body=message)
+    except pushbullet.errors.PushbulletError:
+        pass
+    except AttributeError:
+        pass
+
+    try:
+        if len(TELEGRAM_USER_ID) > 0:
+            telegram = telepot.Bot(TELEGRAM_BOT_TOKEN)
+            telegram.sendMessage(TELEGRAM_USER_ID, message)
+    except AttributeError:
+        pass
 
 logger.info('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
 
