@@ -8,8 +8,8 @@ COPY requirements.txt docker/*.sh ./
 
 # install dependecies
 RUN set -ex \
-    && apt-get update \
-    && apt-get -y install bash git \
+    && curl -sL https://deb.nodesource.com/setup_8.x | bash - \
+    && apt-get -y install bash git nodejs \
     && rm -rf /var/lib/apt/lists/* \
     && pip install -r ./requirements.txt --upgrade \
     && rm -rf /root/.cache/pip/* \
