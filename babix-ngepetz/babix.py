@@ -2,6 +2,7 @@ import json
 import logging
 import sys
 import time
+import socket
 from os import environ
 
 import requests
@@ -34,6 +35,7 @@ def set_default_config():
     environ.setdefault("PUSHBULLET_TOKEN", "")
     environ.setdefault("TELEGRAM_BOT_TOKEN", "472836801:AAGQgDhB0dg471Nvqc9RjqiXZJ4K2qnieHQ") # @BabixBot, default, hosted by sendz. Change this to your own bot if you want to
     environ.setdefault("TELEGRAM_USER_ID", "")
+    environ.setdefault("HOSTNAME", socket.gethostname())
 
 
 set_default_config()
@@ -44,6 +46,7 @@ API_SECRET = environ.get('API_SECRET')
 PUSHBULLET_TOKEN = environ.get('PUSHBULLET_TOKEN')
 TELEGRAM_BOT_TOKEN = environ.get('TELEGRAM_BOT_TOKEN')
 TELEGRAM_USER_ID = environ.get('TELEGRAM_USER_ID')
+HOSTNAME = environ.get('HOSTNAME')
 
 # wait second until transaction filled
 SLEEP_SECONDS = float(environ.get('SLEEP_SECONDS'))
@@ -829,7 +832,7 @@ if int(profit_idr) < 0:
     try:
         if len(TELEGRAM_USER_ID) > 0:
             telegram = telepot.Bot(TELEGRAM_BOT_TOKEN)
-            telegram.sendMessage(TELEGRAM_USER_ID, message)
+            telegram.sendMessage(TELEGRAM_USER_ID, '[%s] - %s' % (HOSTNAME, message))
     except AttributeError:
         pass
 
