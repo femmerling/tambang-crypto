@@ -800,7 +800,7 @@ if int(profit_idr) == 0:
     logger.info('Ngepet kali ini unfaedah Bos!!')
 
 if int(profit_idr) > 0:
-    message = 'Opit Bos Opit Bos IDR %s' % Money(amount=profit_idr, currency='IDR').format('id_ID', '¤ #,##0')
+    message = 'Opit Bos Opit Bos %s' % Money(amount=profit_idr, currency='IDR').format('id_ID', '¤ #,##0')
     logger.info(message)
     try:
         if len(PUSHBULLET_TOKEN) > 0:
@@ -819,7 +819,7 @@ if int(profit_idr) > 0:
         pass
 
 if int(profit_idr) < 0:
-    message = 'Digebukin warga bos, biaya Rumah Sakit IDR %s' % Money(amount=profit_idr, currency='IDR').format('id_ID', '¤ #,##0')
+    message = 'Digebukin warga bos, biaya Rumah Sakit %s' % Money(amount=profit_idr, currency='IDR').format('id_ID', '¤ #,##0')
     logger.info(message)
     try:
         if len(PUSHBULLET_TOKEN) > 0:
