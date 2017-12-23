@@ -18,3 +18,5 @@ six==1.11.0
 urllib3==1.22
 websocket-client==0.44.0
 telepot==12.5
+money==1.3.0
+babel==2.5.1
