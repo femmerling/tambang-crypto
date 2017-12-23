@@ -790,8 +790,8 @@ if max_profit_path == '':
 current_idr_balance = get_current_coin_amount('idr')
 profit_idr = current_idr_balance - previous_idr_balance
 
-logger.info('Previous Balance IDR: %s' % Money(amount=previous_idr_balance, currency='IDR').format('id_ID', '¤ #,##0'))
-logger.info('Current Balance IDR: %s' % Money(amount=current_idr_balance, currency='IDR').format('id_ID', '¤ #,##0'))
+logger.info('Previous Balance: %s' % Money(amount=previous_idr_balance, currency='IDR').format('id_ID', '¤ #,##0'))
+logger.info('Current Balance: %s' % Money(amount=current_idr_balance, currency='IDR').format('id_ID', '¤ #,##0'))
 
 with open(NAMA_FILE_DUIT, 'w') as f:
     f.write(str(current_idr_balance))
