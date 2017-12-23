@@ -133,3 +133,5 @@ venv.bak/
 
 # End of https://www.gitignore.io/api/python,osx
 .idea
+catetan_duit.txt
+
