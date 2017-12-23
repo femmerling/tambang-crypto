@@ -814,7 +814,7 @@ if int(profit_idr) > 0:
     try:
         if len(TELEGRAM_USER_ID) > 0:
             telegram = telepot.Bot(TELEGRAM_BOT_TOKEN)
-            telegram.sendMessage(TELEGRAM_USER_ID, message)
+            telegram.sendMessage(TELEGRAM_USER_ID, '[%s] - %s' % (HOSTNAME, message))
     except AttributeError:
         pass
 
