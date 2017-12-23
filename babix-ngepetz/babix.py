@@ -12,6 +12,7 @@ import vipbtc
 from vipio.cfsession import create_scraper
 import pushbullet
 import telepot
+from money import Money
 
 __VERSION__ = '0.3.3.0'
 
@@ -789,8 +790,8 @@ if max_profit_path == '':
 current_idr_balance = get_current_coin_amount('idr')
 profit_idr = current_idr_balance - previous_idr_balance
 
-logger.info('Previous Balance IDR: %s' % previous_idr_balance)
-logger.info('Current Balance IDR: %s' % current_idr_balance)
+logger.info('Previous Balance IDR: %s' % Money(amount=previous_idr_balance, currency='IDR').format('id_ID', '¤ #,##0'))
+logger.info('Current Balance IDR: %s' % Money(amount=current_idr_balance, currency='IDR').format('id_ID', '¤ #,##0'))
 
 with open(NAMA_FILE_DUIT, 'w') as f:
     f.write(str(current_idr_balance))
@@ -799,7 +800,7 @@ if int(profit_idr) == 0:
     logger.info('Ngepet kali ini unfaedah Bos!!')
 
 if int(profit_idr) > 0:
-    message = 'Opit Bos Opit Bos IDR %s' % profit_idr
+    message = 'Opit Bos Opit Bos IDR %s' % Money(amount=profit_idr, currency='IDR').format('id_ID', '¤ #,##0')
     logger.info(message)
     try:
         if len(PUSHBULLET_TOKEN) > 0:
@@ -818,7 +819,7 @@ if int(profit_idr) > 0:
         pass
 
 if int(profit_idr) < 0:
-    message = 'Digebukin warga bos, biaya Rumah Sakit IDR %s' % profit_idr
+    message = 'Digebukin warga bos, biaya Rumah Sakit IDR %s' % Money(amount=profit_idr, currency='IDR').format('id_ID', '¤ #,##0')
     logger.info(message)
     try:
         if len(PUSHBULLET_TOKEN) > 0:
