@@ -720,8 +720,16 @@ def is_price_make_sense(btc_pair, alt_pair):
         req_result[pair] = session.get(url, proxies=proxies)
     return
 
+logger.info('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+
+logger.debug('Going to get coin balance')
 previous_idr_balance = get_current_coin_amount('idr')
+logger.debug('Got coin balance')
+
+logger.debug('Going to fetch market data')
 market_depths = fetch_market_data()
+logger.debug('Market data fetched')
+
 max_profit = 0
 max_profit_path = ''
 highest_profit_percentage = -9999
@@ -730,8 +738,6 @@ highest_path = ''
 highest_target = 0
 highest_partition = 0
 profit_path = {}
-
-logger.info('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
 
 for portion in range(MAX_PARTITION, 0, -1):
     amount_idr = (portion / MAX_PARTITION) * modal_duid
