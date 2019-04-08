@@ -18,24 +18,24 @@ __VERSION__ = '0.3.3.0'
 
 
 def set_default_config():
-    environ.setdefault("API_KEY", "")
-    environ.setdefault("API_SECRET", "")
+    environ.setdefault("API_KEY", "DBSPV6B6-TC6JTRAV-BTFE9BKF-UHP2I0JT-XSU2OHTN")
+    environ.setdefault("API_SECRET", "70df2ffb938b7e459d3bcf1b15c6d4567cdc7d04f8e3c8e62ceecd6682c8b38aa8ef809d4965d914")
     environ.setdefault("SLEEP_SECONDS", "1")
     environ.setdefault("MAX_WAIT_TIME_SECONDS", "10")
     environ.setdefault("LAST_STEP_WAIT_TIME_SECONDS", "10")
     environ.setdefault("BASE_URL", "https://vip.bitcoin.co.id/api/")
     environ.setdefault("PRIVATE_URL", "https://vip.bitcoin.co.id/tapi/")
-    environ.setdefault("MODAL_DUID", "100000")
+    environ.setdefault("MODAL_DUID", "200000")
     environ.setdefault("FEE_PORTION", "0.003")
-    environ.setdefault("THRESHOLD", "0.005")
-    environ.setdefault("MAX_PARTITION", "10")
-    environ.setdefault("SAFETY_NET_MULTIPLIER", "8")
+    environ.setdefault("THRESHOLD", "0.001")
+    environ.setdefault("MAX_PARTITION", "4")
+    environ.setdefault("SAFETY_NET_MULTIPLIER", "1")
     environ.setdefault("ALT_TO_TRADE", "ETH LTC XLM XRP NXT")
     environ.setdefault("MODAL_NGAMBANG", "false")
     environ.setdefault("SHARED_DEPOSIT", "0.5")
     environ.setdefault("PUSHBULLET_TOKEN", "")
     environ.setdefault("TELEGRAM_BOT_TOKEN", "472836801:AAGQgDhB0dg471Nvqc9RjqiXZJ4K2qnieHQ") # @BabixBot, default, hosted by sendz. Change this to your own bot if you want to
-    environ.setdefault("TELEGRAM_USER_ID", "")
+    environ.setdefault("TELEGRAM_USER_ID", "304848763")
     environ.setdefault("HOSTNAME", socket.gethostname())
 
 
