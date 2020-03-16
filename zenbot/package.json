@@ -36,7 +36,7 @@
     "mathjs": "3.16.5",
     "micro-request": "^666.0.10",
     "mime": "^1.4.0",
-    "minimist": "^1.2.0",
+    "minimist": "^1.2.2",
     "moment": "^2.18.1",
     "mongodb": "^2.2.31",
     "node-prowl": "^0.1.7",
