@@ -38,7 +38,7 @@
     "koa-static": "^2.0.0",
     "kraken-api-es5": "^1.0.0",
     "lakebtc_nodejs": "0.1.x",
-    "lodash": "2.x",
+    "lodash": "4.x",
     "moment": "2.4.x",
     "node.bittrex.api": "^0.4.3",
     "okcoin-china": "0.0.7",
