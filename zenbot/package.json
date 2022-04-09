@@ -37,7 +37,7 @@
     "micro-request": "^666.0.10",
     "mime": "^1.4.0",
     "minimist": "^1.2.3",
-    "moment": "^2.18.1",
+    "moment": "^2.29.2",
     "mongodb": "^2.2.31",
     "node-prowl": "^0.1.7",
     "node-uuid": "^1.4.8",
