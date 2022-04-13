@@ -16,7 +16,7 @@
   "author": "Mike van Rossum <mike@mvr.me>",
   "dependencies": {
     "@slack/client": "^3.10.0",
-    "async": "2.1.2",
+    "async": "3.2.2",
     "bitexthai": "^0.1.0",
     "bitfinex-api-node": "^1.2.0",
     "bitstamp": "^1.0.3",
