@@ -3,7 +3,7 @@ chardet==3.0.4
 dill==0.2.5
 future==0.16.0
 idna==2.6
-numpy==1.13.3
+numpy==1.22.0
 PyExecJS==1.5.0
 PyFunctional==1.0.0
 requests==2.18.4
